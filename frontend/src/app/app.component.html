@@ -1,0 +1,696 @@
+<!-- HEADER -->
+<header class="header">
+  <div class="brand">
+    <svg viewBox="0 0 32 32">
+      <path d="M16 2L20.2 6.2L11.8 14.6L7.6 10.4L16 2Z"></path>
+      <path d="M24.4 10.4L28.6 14.6L16 27.2L3.4 14.6L7.6 10.4L16 18.8L24.4 10.4Z"></path>
+      <path d="M16 8.4L20.2 12.6L16 16.8L11.8 12.6L16 8.4Z"></path>
+    </svg>
+    <div>
+      <div class="brand-title">
+        Binance Cycle & Price Predictor
+        <span class="brand-badge">Angular + C# .NET Core</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="header-right">
+    @if (sentiment(); as s) {
+      <div class="sentiment-pill">
+        <span class="dot" [class.greed]="s.fearGreedIndex >= 60" [class.fear]="s.fearGreedIndex < 40"></span>
+        <span>Tâm lý thị trường:</span>
+        <strong>{{ s.fearGreedIndex }}/100</strong>
+        <span class="sentiment-text">({{ s.classificationVietnamese }})</span>
+      </div>
+    }
+    <div class="status-live">
+      <span class="pulse-dot"></span> WEBSOCKET LIVE STREAM
+      <span class="clock-badge">{{ liveClock() }}</span>
+    </div>
+  </div>
+</header>
+
+<!-- COIN TICKER BAR -->
+<nav class="coin-bar">
+  @for (coin of coins(); track coin.symbol) {
+    <div
+      class="coin-item"
+      [class.active]="coin.symbol === selectedSymbol()"
+      (click)="selectCoin(coin.symbol)"
+    >
+      <img [src]="coin.iconUrl" [alt]="coin.name" onerror="this.src='https://assets.coingecko.com/coins/images/1/large/bitcoin.png'" />
+      <div class="coin-meta">
+        <span class="coin-sym">{{ coin.baseAsset }}</span>
+        <span class="coin-price">{{ formatCurrency(coin.price) }}</span>
+      </div>
+      <span
+        class="pct-badge"
+        [class.up]="coin.priceChangePercent24h >= 0"
+        [class.down]="coin.priceChangePercent24h < 0"
+      >
+        {{ coin.priceChangePercent24h >= 0 ? '+' : '' }}{{ coin.priceChangePercent24h | number:'1.2-2' }}%
+      </span>
+    </div>
+  }
+</nav>
+
+<!-- MAIN CONTENT -->
+@if (selectedCoin(); as coin) {
+  <main class="main-content">
+
+    <!-- HERO BANNER -->
+    <section class="hero-banner">
+      <div class="hero-info">
+        <img [src]="coin.iconUrl" [alt]="coin.name" class="hero-logo" />
+        <div>
+          <h1>{{ coin.name }} <span class="hero-sub">{{ coin.baseAsset }}/USDT</span></h1>
+          <p class="hero-category">{{ coin.category }}</p>
+        </div>
+      </div>
+
+      <div class="hero-price-group">
+        <div class="hero-price">{{ formatCurrency(coin.price) }}</div>
+        <span
+          class="pct-badge large"
+          [class.up]="coin.priceChangePercent24h >= 0"
+          [class.down]="coin.priceChangePercent24h < 0"
+        >
+          {{ coin.priceChangePercent24h >= 0 ? '+' : '' }}{{ coin.priceChangePercent24h | number:'1.2-2' }}%
+          ({{ formatCurrency(coin.priceChange24h) }})
+        </span>
+      </div>
+
+      <div class="hero-metrics">
+        <div class="metric-item">
+          <span class="m-label">Đỉnh lịch sử (ATH)</span>
+          <span class="m-val">{{ formatCurrency(coin.athPrice) }}</span>
+          <span class="m-sub">Ngày: {{ coin.athDate }}</span>
+        </div>
+        <div class="metric-item">
+          <span class="m-label">Độ sụt giảm ATH</span>
+          <span class="m-val drawdown">-{{ coin.athDrawdownPercent | number:'1.1-1' }}%</span>
+          <span class="m-sub">Khoảng cách tới đỉnh</span>
+        </div>
+        <div class="metric-item">
+          <span class="m-label">Khối lượng 24h</span>
+          <span class="m-val">{{ formatCompact(coin.volume24h) }} {{ coin.baseAsset }}</span>
+          <span class="m-sub">≈ {{ formatCurrency(coin.quoteVolume24h) }}</span>
+        </div>
+        <div class="metric-item">
+          <span class="m-label">Biên độ 24h</span>
+          <span class="m-val">{{ formatCurrency(coin.low24h) }} - {{ formatCurrency(coin.high24h) }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- GRID: CHART ON LEFT, CYCLE ON RIGHT -->
+    <div class="dashboard-grid">
+
+      <!-- 1. INTERACTIVE PRICE CHART COMPONENT -->
+      <app-price-chart [klines]="klines()" [symbol]="selectedSymbol()" [ictSetup]="futuresData()?.ictSetup || null" [timeframe]="currentTimeframe()" (timeframeChange)="setTimeframe($event)"></app-price-chart>
+
+      <!-- 2. CYCLE ANALYSIS PANEL -->
+      @if (cycleData(); as cycle) {
+        <div class="card cycle-card">
+          <div class="card-header">
+            <h2>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Phân Tích Thay Đổi Chu Kỳ (Cycle Analysis)
+            </h2>
+            <span class="risk-badge" [class.low]="cycle.riskScore <= 4" [class.med]="cycle.riskScore > 4 && cycle.riskScore <= 7" [class.high]="cycle.riskScore > 7">
+              Rủi ro chu kỳ: {{ cycle.riskScore }}/10 ({{ cycle.riskLevel }})
+            </span>
+          </div>
+
+          <div class="stage-highlight">
+            <span class="stage-tag">Giai đoạn hiện tại</span>
+            <h3>{{ cycle.currentStage }}</h3>
+            <p>{{ cycle.stageDescription }}</p>
+          </div>
+
+          <!-- HALVING PROGRESS -->
+          <div class="cycle-progress-wrap">
+            <div class="progress-labels">
+              <span>Tiến trình chu kỳ Halving 4 năm</span>
+              <strong>{{ cycle.cycleProgressPercent }}%</strong>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" [style.width.%]="cycle.cycleProgressPercent"></div>
+            </div>
+            <div class="progress-footer">
+              <span>Đã qua: {{ cycle.daysSinceHalving }} ngày</span>
+              <span>Dự kiến Halving tiếp: {{ cycle.daysToNextHalving }} ngày (~{{ cycle.nextHalvingDate }})</span>
+            </div>
+          </div>
+
+          <!-- KEY CYCLE INDICATORS -->
+          <div class="indicators-grid">
+            <div class="ind-box">
+              <span class="ind-name">Bội số Mayer (Mayer Multiple)</span>
+              <span class="ind-value">{{ cycle.mayerMultiple | number:'1.2-2' }}</span>
+              <span class="ind-note">&lt;0.8 Gom hàng | &gt;2.4 Vùng đỉnh</span>
+            </div>
+            <div class="ind-box">
+              <span class="ind-name">Chỉ số RSI 14 Ngày</span>
+              <span class="ind-value">{{ cycle.rsi14 | number:'1.1-1' }}</span>
+              <span class="ind-note">&lt;30 Quá bán | &gt;70 Quá mua</span>
+            </div>
+            <div class="ind-box">
+              <span class="ind-name">Đường hỗ trợ 200 Ngày (SMA200)</span>
+              <span class="ind-value">{{ formatCurrency(cycle.sma200) }}</span>
+              <span class="ind-note">Cách biệt: {{ cycle.distanceTo200SmaPercent }}%</span>
+            </div>
+            <div class="ind-box">
+              <span class="ind-name">Chỉ báo Đỉnh Pi Cycle</span>
+              <span class="ind-value status">{{ cycle.piCycleStatus }}</span>
+              <span class="ind-note">111 DMA vs 2x 350 DMA</span>
+            </div>
+          </div>
+
+          <div class="history-comp-box">
+            <strong>Đối chiếu lịch sử:</strong> {{ cycle.historicalComparison }}
+          </div>
+        </div>
+      }
+
+    </div>
+
+    <!-- 2.5 FUTURES (FT) PHÂN TÍCH PHÁI SINH & HỢP ĐỒNG TƯƠNG LAI -->
+    @if (futuresData(); as ft) {
+      <div class="card futures-card">
+        <div class="card-header">
+          <h2>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+            Phân Tích Hợp Đồng Tương Lai & Phái Sinh (Binance Futures - FT)
+          </h2>
+          <span class="funding-timer">Kỳ Funding kế tiếp: {{ ft.nextFundingTime }}</span>
+        </div>
+
+        <!-- DAILY BIAS SYSTEM (D1 TỔNG - H4 TRUNG HẠN - M15 VÀO LỆNH) -->
+        @if (ft.dailyBias; as db) {
+          <div class="daily-bias-card">
+            <div class="bias-header">
+              <div>
+                <span class="bias-sub-title">HỆ THỐNG DAILY BIAS ĐA KHUNG THỜI GIAN (ICT MTF ALIGNMENT)</span>
+                <h3 class="bias-main-title">
+                  <span>Daily Bias Tổng D1</span>
+                  <span class="arrow">➔</span>
+                  <span>Cấu Trúc H4</span>
+                  <span class="arrow">➔</span>
+                  <span>Điểm Vào Lệnh M15</span>
+                </h3>
+              </div>
+              <div class="bias-header-right">
+                <span class="bias-badge" [class.bull]="db.alignmentStatus.includes('LONG') || db.alignmentStatus.includes('🟢')"
+                     [class.bear]="db.alignmentStatus.includes('SHORT') || db.alignmentStatus.includes('🔴')"
+                     [class.neutral]="!db.alignmentStatus.includes('LONG') && !db.alignmentStatus.includes('SHORT') && !db.alignmentStatus.includes('🟢') && !db.alignmentStatus.includes('🔴')">
+                  {{ db.alignmentStatus }}
+                </span>
+                <span class="align-score">{{ db.alignmentScore }}% Cùng Pha</span>
+              </div>
+            </div>
+
+            <!-- 3 PILLARS: D1, H4, M15 -->
+            <div class="bias-grid-3">
+              <!-- PILLAR 1: D1 TỔNG -->
+              <div class="bias-pillar d1">
+                <div class="pillar-header">
+                  <span class="pillar-name d1-title">1. Daily Bias Tổng (D1)</span>
+                  <span class="bias-tag" [class.bull]="db.d1Bias === 'BULLISH'" [class.bear]="db.d1Bias === 'BEARISH'">
+                    {{ db.d1Bias }}
+                  </span>
+                </div>
+                <div class="pillar-row">
+                  <span class="label">Cấu Trúc D1:</span>
+                  <span class="val">{{ db.d1Structure }}</span>
+                </div>
+                <div class="pillar-row">
+                  <span class="label">Biên Độ PDH - PDL:</span>
+                  <span class="val gold">{{ formatCurrency(db.previousDayLow) }} - {{ formatCurrency(db.previousDayHigh) }}</span>
+                </div>
+                <div class="pillar-note">{{ db.pdhPdlSweepStatus }}</div>
+                <div class="pillar-row">
+                  <span class="label">D1 EMA 20/50:</span>
+                  <span class="val">{{ formatCurrency(db.d1Ema20) }} / {{ formatCurrency(db.d1Ema50) }}</span>
+                </div>
+                <div class="pillar-row">
+                  <span class="label">D1 RSI 14:</span>
+                  <span class="val" [class.green]="db.d1Rsi14 >= 50" [class.red]="db.d1Rsi14 < 50">
+                    {{ db.d1Rsi14 }} ({{ db.d1Rsi14 >= 50 ? 'Phe Bò' : 'Phe Gấu' }})
+                  </span>
+                </div>
+              </div>
+
+              <!-- PILLAR 2: H4 TRUNG HẠN -->
+              <div class="bias-pillar h4">
+                <div class="pillar-header">
+                  <span class="pillar-name h4-title">2. Bias Trung Hạn (H4)</span>
+                  <span class="bias-tag" [class.bull]="db.h4Bias === 'BULLISH'" [class.bear]="db.h4Bias === 'BEARISH'">
+                    {{ db.h4Bias }}
+                  </span>
+                </div>
+                <div class="pillar-row">
+                  <span class="label">Cấu Trúc Sóng H4:</span>
+                  <span class="val">{{ db.h4Structure }}</span>
+                </div>
+                <div class="pillar-row">
+                  <span class="label">Khối Cản/Cầu H4:</span>
+                  <span class="val" [class.red]="db.h4Bias === 'BEARISH'" [class.green]="db.h4Bias === 'BULLISH'">{{ db.h4KeyZone }}</span>
+                </div>
+                <div class="pillar-note">{{ db.h4BiasDescription }}</div>
+                <div class="pillar-row">
+                  <span class="label">H4 EMA 50:</span>
+                  <span class="val blue">{{ formatCurrency(db.h4Ema50) }}</span>
+                </div>
+                <div class="pillar-row">
+                  <span class="label">H4 RSI 14:</span>
+                  <span class="val">{{ db.h4Rsi14 }} ({{ db.h4Rsi14 >= 50 ? 'Mạnh' : 'Yếu' }})</span>
+                </div>
+              </div>
+
+              <!-- PILLAR 3: M15 VÀO LỆNH -->
+              <div class="bias-pillar m15">
+                <div class="pillar-header">
+                  <span class="pillar-name m15-title">3. Bias Vào Lệnh (M15)</span>
+                  <span class="bias-tag" [class.bull]="db.m15Bias === 'BULLISH'" [class.bear]="db.m15Bias === 'BEARISH'">
+                    {{ db.m15Bias }}
+                  </span>
+                </div>
+                <div class="pillar-row">
+                  <span class="label">Kích Hoạt (Trigger):</span>
+                  <span class="val" [class.green]="db.m15Bias === 'BULLISH'" [class.red]="db.m15Bias === 'BEARISH'">{{ db.m15Trigger }}</span>
+                </div>
+                <div class="pillar-row">
+                  <span class="label">Vùng Entry M15:</span>
+                  <span class="val yellow">{{ db.m15EntryZone }}</span>
+                </div>
+                <div class="pillar-note">{{ db.m15BiasDescription }}</div>
+                <div class="pillar-row">
+                  <span class="label">M15 EMA 20:</span>
+                  <span class="val gold">{{ formatCurrency(db.m15Ema20) }}</span>
+                </div>
+                <div class="pillar-row">
+                  <span class="label">M15 RSI 14:</span>
+                  <span class="val">{{ db.m15Rsi14 }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ACTION PLAN BANNER -->
+            <div class="bias-action-box">
+              <span class="action-box-title">💡 KẾ HOẠCH HÀNH ĐỘNG THỰC CHIẾN ĐA KHUNG (ACTIONABLE TRADING PLAN):</span>
+              <p class="action-box-text">{{ db.actionablePlan }}</p>
+            </div>
+          </div>
+        }
+
+        <!-- 4 STAT CARDS -->
+        <div class="ft-stat-grid">
+          <div class="ft-mini-card">
+            <div class="ft-card-title">
+              <span>Funding Rate (8H)</span>
+              <span class="pct-badge" [class.up]="ft.fundingRatePercent >= 0" [class.down]="ft.fundingRatePercent < 0">
+                {{ ft.fundingRatePercent >= 0 ? '+' : '' }}{{ ft.fundingRatePercent }}%
+              </span>
+            </div>
+            <div class="ft-card-val" [class.up]="ft.fundingRatePercent >= 0" [class.down]="ft.fundingRatePercent < 0">
+              {{ ft.fundingRatePercent >= 0 ? '+' : '' }}{{ ft.fundingRatePercent }}%
+            </div>
+            <div class="ft-card-sub">Quy đổi năm: <b>~{{ ft.annualizedFundingRate }}% APR</b></div>
+            <div class="ft-card-note">{{ ft.fundingSentiment }}</div>
+          </div>
+
+          <div class="ft-mini-card">
+            <div class="ft-card-title">
+              <span>Tỷ lệ Long / Short</span>
+              <b class="ratio-val">{{ ft.longShortRatio }}</b>
+            </div>
+            <div class="ls-bar-track">
+              <div class="ls-bar-long" [style.width.%]="ft.longAccountPercent"></div>
+              <div class="ls-bar-short" [style.width.%]="ft.shortAccountPercent"></div>
+            </div>
+            <div class="ls-bar-labels">
+              <span class="long-text">Long: {{ ft.longAccountPercent }}%</span>
+              <span class="short-text">Short: {{ ft.shortAccountPercent }}%</span>
+            </div>
+            <div class="ft-card-note">{{ ft.longShortSentiment }}</div>
+          </div>
+
+          <div class="ft-mini-card">
+            <div class="ft-card-title">
+              <span>Hợp đồng mở (Open Interest)</span>
+              <span class="oi-tag">OI Tổng</span>
+            </div>
+            <div class="ft-card-val">{{ formatCompactUsd(ft.openInterestUsd) }}</div>
+            <div class="ft-card-sub">Số lượng: <b>{{ formatCompact(ft.openInterestCoin) }} {{ ft.symbol }}</b></div>
+            <div class="ft-card-note">{{ ft.openInterestInterpretation }}</div>
+          </div>
+
+          <div class="ft-mini-card">
+            <div class="ft-card-title">
+              <span>Giá Đánh Dấu (Mark Price)</span>
+              <span class="basis-tag">Basis: {{ ft.priceBasis >= 0 ? '+' : '' }}{{ formatCurrency(ft.priceBasis) }}</span>
+            </div>
+            <div class="ft-card-val">{{ formatCurrency(ft.markPrice) }}</div>
+            <div class="ft-card-sub">Giá Index: <b>{{ formatCurrency(ft.indexPrice) }}</b></div>
+            <div class="ft-card-note">Giá chuẩn sàn Binance Futures dùng để tính thanh lý PnL.</div>
+          </div>
+        </div>
+
+        <!-- LIQUIDATION POOLS -->
+        <div class="liq-box" style="margin-bottom: 16px;">
+          <h4>
+            <span class="indicator-bar red"></span>
+            Cụm Bản Đồ Thanh Lý Hợp Đồng Mở (Liquidation Heatmap)
+          </h4>
+          <div class="liq-clusters">
+            <div class="cluster-card long">
+              <span class="cluster-label">Cụm Thanh Lý Long (Dưới)</span>
+              <span class="cluster-price">{{ formatCurrency(ft.longLiquidationCluster) }}</span>
+              <span class="cluster-desc">Điểm thanh lý các lệnh Long đòn bẩy 20x - 50x. Thường là vùng đệm hỗ trợ bật hồi.</span>
+            </div>
+            <div class="cluster-card short">
+              <span class="cluster-label">Cụm Thanh Lý Short (Trên)</span>
+              <span class="cluster-price">{{ formatCurrency(ft.shortLiquidationCluster) }}</span>
+              <span class="cluster-desc">Điểm ép cắt lỗ các lệnh Short 20x - 50x (Short Squeeze). Giá dễ bị hút lên vùng này.</span>
+            </div>
+          </div>
+          <div class="liq-summary-text">{{ ft.liquidationMapSummary }}</div>
+        </div>
+
+        <!-- ICT + RSI + EMA CONFLUENCE & LONG / SHORT ORDER SETUP -->
+        @if (ft.ictSetup; as ict) {
+          <div class="signal-box ict-signal-box">
+            <div class="signal-header">
+              <div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="signal-title">CHIẾN LƯỢC HỘI TỤ ICT + RSI 14 + EMA RIBBON</span>
+                  <span class="conf-badge">Độ tin cậy: {{ ict.confidenceScore }}%</span>
+                </div>
+                <div class="action-badge"
+                     [class.long]="ict.confidenceScore > 70 && ict.setupAction.includes('LONG')"
+                     [class.short]="ict.confidenceScore > 70 && ict.setupAction.includes('SHORT')"
+                     [class.wait]="ict.confidenceScore <= 70 || !ict.setupAction.includes('MỞ VỊ THẾ')">
+                  {{ ict.setupAction }}
+                </div>
+              </div>
+              <div class="signal-metrics">
+                <div>Đòn bẩy: <b>{{ ict.leverageRule }}</b></div>
+                <div>Tỷ lệ R:R: <b class="rr-text">{{ ict.confidenceScore > 70 && ict.riskRewardRatio > 0 ? ('1 : ' + (ict.riskRewardRatio | number:'1.2-2')) : 'Chưa kích hoạt' }}</b></div>
+              </div>
+            </div>
+
+            <!-- 5-LEVEL TRADE EXECUTION ROW -->
+            <div class="signal-levels">
+              <div class="lvl-col">
+                <span class="lvl-label">Vùng Entry Tối Ưu</span>
+                <span class="lvl-val entry">{{ ict.confidenceScore > 70 && ict.optimalEntry > 0 ? formatCurrency(ict.optimalEntry) : 'Chờ đủ điều kiện (>70%)' }}</span>
+                <span class="lvl-sub">{{ ict.confidenceScore > 70 ? 'Limit Chờ Test' : 'Chưa vào lệnh' }}</span>
+              </div>
+              <div class="lvl-col">
+                <span class="lvl-label">Dừng Lỗ (Stop Loss)</span>
+                <span class="lvl-val sl">{{ ict.confidenceScore > 70 && ict.stopLoss > 0 ? formatCurrency(ict.stopLoss) : '--' }}</span>
+                <span class="lvl-sub red">Bảo toàn vốn</span>
+              </div>
+              <div class="lvl-col">
+                <span class="lvl-label">Chốt Lời 1 (TP1 - 50%)</span>
+                <span class="lvl-val tp">{{ ict.confidenceScore > 70 && ict.takeProfit1 > 0 ? formatCurrency(ict.takeProfit1) : '--' }}</span>
+                <span class="lvl-sub">Dời SL về Entry</span>
+              </div>
+              <div class="lvl-col">
+                <span class="lvl-label">Chốt Lời 2 (TP2 - 30%)</span>
+                <span class="lvl-val tp">{{ ict.confidenceScore > 70 && ict.takeProfit2 > 0 ? formatCurrency(ict.takeProfit2) : '--' }}</span>
+                <span class="lvl-sub">Khóa 80% lợi nhuận</span>
+              </div>
+              <div class="lvl-col">
+                <span class="lvl-label">Chốt Lời 3 (TP3 - 20%)</span>
+                <span class="lvl-val tp">{{ ict.confidenceScore > 70 && ict.takeProfit3 > 0 ? formatCurrency(ict.takeProfit3) : '--' }}</span>
+                <span class="lvl-sub">Gồng hết sóng lớn</span>
+              </div>
+            </div>
+
+            <!-- 3-CARD DETAIL GRID: ICT, RSI, EMA -->
+            <div class="ict-grid-3">
+              <!-- CARD 1: ICT SMART MONEY CONCEPT -->
+              <div class="ict-card">
+                <div class="ict-card-header">
+                  <span>1. Cấu Trúc ICT (SMC)</span>
+                  <span class="ict-tag">ICT Model</span>
+                </div>
+                <div class="ict-row">
+                  <span class="ict-row-label">Cấu Trúc Thị Trường:</span>
+                  <span class="ict-row-val yellow">{{ ict.marketStructure }}</span>
+                </div>
+                <div class="ict-row">
+                  <span class="ict-row-label">Khối Lệnh Order Block:</span>
+                  <span class="ict-row-val">{{ ict.orderBlockType }} [{{ formatCurrency(ict.orderBlockLow) }} - {{ formatCurrency(ict.orderBlockHigh) }}]</span>
+                </div>
+                <div class="ict-row">
+                  <span class="ict-row-label">Khoảng Trống FVG:</span>
+                  <span class="ict-row-val">{{ ict.fvgType }} [{{ formatCurrency(ict.fvgLow) }} - {{ formatCurrency(ict.fvgHigh) }}]</span>
+                </div>
+                <div class="ict-row">
+                  <span class="ict-row-label">Quét Thanh Khoản:</span>
+                  <span class="ict-row-val small">{{ ict.liquiditySweep }}</span>
+                </div>
+                <div class="ict-row">
+                  <span class="ict-row-label">Vùng OTE Fib (0.618-0.786):</span>
+                  <span class="ict-row-val">{{ ict.oteFibZone }}</span>
+                </div>
+              </div>
+
+              <!-- CARD 2: RSI 14 & DIVERGENCE -->
+              <div class="ict-card">
+                <div class="ict-card-header">
+                  <span>2. Động Lượng RSI 14</span>
+                  <span class="ict-tag">RSI: {{ ict.rsi14 }}</span>
+                </div>
+                <div class="rsi-gauge-bar">
+                  <div class="rsi-pin" [style.left.%]="ict.rsi14"></div>
+                </div>
+                <div class="rsi-gauge-labels">
+                  <span class="green-text">0 (Quá Bán)</span>
+                  <span>50 (Trung Lập)</span>
+                  <span class="red-text">100 (Quá Mua)</span>
+                </div>
+                <div class="ict-row">
+                  <span class="ict-row-label">Đánh Giá Động Lượng:</span>
+                  <span class="ict-row-val yellow">{{ ict.rsiSentiment }}</span>
+                </div>
+                <div class="ict-row">
+                  <span class="ict-row-label">Tín Hiệu Phân Kỳ (Div):</span>
+                  <span class="ict-row-val">{{ ict.rsiDivergence }}</span>
+                </div>
+              </div>
+
+              <!-- CARD 3: EMA RIBBON (20 / 50 / 200) -->
+              <div class="ict-card">
+                <div class="ict-card-header">
+                  <span>3. Hệ Thống EMA Ribbon</span>
+                  <span class="ict-tag">Xu Hướng Trend</span>
+                </div>
+                <div class="ict-row">
+                  <span class="ict-row-label">Trạng Thái Dải EMA:</span>
+                  <span class="ict-row-val red-text">{{ ict.emaTrend }}</span>
+                </div>
+                <div class="ict-row">
+                  <span class="ict-row-label">EMA 20 (Ngắn hạn - Vàng):</span>
+                  <span class="ict-row-val gold-text">{{ formatCurrency(ict.ema20) }}</span>
+                </div>
+                <div class="ict-row">
+                  <span class="ict-row-label">EMA 50 (Trung hạn - Xanh):</span>
+                  <span class="ict-row-val blue-text">{{ formatCurrency(ict.ema50) }}</span>
+                </div>
+                <div class="ict-row">
+                  <span class="ict-row-label">EMA 200 (Dài hạn - Tím):</span>
+                  <span class="ict-row-val purple-text">{{ formatCurrency(ict.ema200) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- CONFLUENCE SUMMARY & RISK RULES -->
+            <div class="ict-confluence-summary-box">
+              <div class="summary-title">TỔNG HỢP HỘI TỤ TÍN HIỆU ĐẶT LỆNH:</div>
+              <div class="summary-body">{{ ict.confluenceSummary }}</div>
+              <div class="risk-advice">{{ ict.riskManagementAdvice }}</div>
+            </div>
+          </div>
+        } @else {
+          <!-- Fallback Trade Signal Setup -->
+          <div class="signal-box">
+            <div class="signal-header">
+              <div>
+                <span class="signal-title">Chiến Lược Đề Xuất FT</span>
+                <div class="action-badge" [class.long]="ft.signalAction.includes('LONG')" [class.short]="!ft.signalAction.includes('LONG')">
+                  {{ ft.signalAction }}
+                </div>
+              </div>
+              <div class="signal-metrics">
+                <div>Đòn bẩy: <b>{{ ft.recommendedLeverage }}</b></div>
+                <div>Tỷ lệ R:R: <b>{{ ft.riskRewardRatio }}</b></div>
+              </div>
+            </div>
+
+            <div class="signal-levels">
+              <div class="lvl-col">
+                <span class="lvl-label">Vùng Entry</span>
+                <span class="lvl-val entry">{{ ft.entryZone }}</span>
+              </div>
+              <div class="lvl-col">
+                <span class="lvl-label">TP 1</span>
+                <span class="lvl-val tp">{{ formatCurrency(ft.takeProfit1) }}</span>
+              </div>
+              <div class="lvl-col">
+                <span class="lvl-label">TP 2</span>
+                <span class="lvl-val tp">{{ formatCurrency(ft.takeProfit2) }}</span>
+              </div>
+              <div class="lvl-col">
+                <span class="lvl-label">TP 3</span>
+                <span class="lvl-val tp">{{ formatCurrency(ft.takeProfit3) }}</span>
+              </div>
+              <div class="lvl-col">
+                <span class="lvl-label">Stop Loss</span>
+                <span class="lvl-val sl">{{ formatCurrency(ft.stopLoss) }}</span>
+              </div>
+            </div>
+
+            <div class="signal-notes">{{ ft.tradingNotes }}</div>
+          </div>
+        }
+
+      </div>
+    }
+
+    <!-- 3. FUTURE FORECASTS & PREDICTIONS PANEL -->
+    @if (predictionData(); as pred) {
+      <div class="card prediction-card">
+        <div class="card-header">
+          <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h5l3 5 4-10 3 5h5"></path></svg>
+            Dự Đoán Tương Lai (Chính Thống & Định Lượng)
+          </h2>
+          <span class="sub-source">Mô hình Power Law + Tổ chức Wall Street</span>
+        </div>
+
+        <!-- 4 PERIODS -->
+        <div class="targets-grid">
+          <div class="target-item">
+            <div class="t-head">
+              <span>30 NGÀY (NGẮN HẠN)</span>
+              <span class="conf">{{ pred.shortTerm30d.confidencePercent }}% tin cậy</span>
+            </div>
+            <div class="t-price">{{ formatCurrency(pred.shortTerm30d.expected) }}</div>
+            <div class="t-range">
+              <span>{{ formatCurrency(pred.shortTerm30d.low) }}</span>
+              <span>-</span>
+              <span>{{ formatCurrency(pred.shortTerm30d.high) }}</span>
+            </div>
+          </div>
+
+          <div class="target-item">
+            <div class="t-head">
+              <span>90 NGÀY (TRUNG HẠN)</span>
+              <span class="conf">{{ pred.midTerm90d.confidencePercent }}% tin cậy</span>
+            </div>
+            <div class="t-price">{{ formatCurrency(pred.midTerm90d.expected) }}</div>
+            <div class="t-range">
+              <span>{{ formatCurrency(pred.midTerm90d.low) }}</span>
+              <span>-</span>
+              <span>{{ formatCurrency(pred.midTerm90d.high) }}</span>
+            </div>
+          </div>
+
+          <div class="target-item">
+            <div class="t-head">
+              <span>1 NĂM (DÀI HẠN)</span>
+              <span class="conf">{{ pred.oneYearTarget.confidencePercent }}% tin cậy</span>
+            </div>
+            <div class="t-price">{{ formatCurrency(pred.oneYearTarget.expected) }}</div>
+            <div class="t-range">
+              <span>{{ formatCurrency(pred.oneYearTarget.low) }}</span>
+              <span>-</span>
+              <span>{{ formatCurrency(pred.oneYearTarget.high) }}</span>
+            </div>
+          </div>
+
+          <div class="target-item peak">
+            <div class="t-head">
+              <span>ĐỈNH CHU KỲ NÀY</span>
+              <span class="conf peak">Halving Target</span>
+            </div>
+            <div class="t-price">{{ formatCurrency(pred.cyclePeakTarget.expected) }}</div>
+            <div class="t-range">
+              <span>{{ formatCurrency(pred.cyclePeakTarget.low) }}</span>
+              <span>-</span>
+              <span>{{ formatCurrency(pred.cyclePeakTarget.high) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- KEY LEVELS -->
+        <div class="key-levels-bar">
+          <span>Hỗ trợ 1: <b>{{ formatCurrency(pred.support1) }}</b></span>
+          <span>Hỗ trợ 2: <b>{{ formatCurrency(pred.support2) }}</b></span>
+          <span>Kháng cự 1: <b>{{ formatCurrency(pred.resistance1) }}</b></span>
+          <span>Kháng cự 2: <b>{{ formatCurrency(pred.resistance2) }}</b></span>
+        </div>
+
+        <!-- SCENARIOS -->
+        <div class="scenarios-wrap">
+          <h3>3 Kịch Bản Biến Động</h3>
+          @for (sc of pred.scenarios; track sc.name; let idx = $index) {
+            <div
+              class="scenario-box"
+              [class.bull]="idx === 0"
+              [class.base]="idx === 1"
+              [class.bear]="idx === 2"
+            >
+              <div class="sc-top">
+                <strong>{{ sc.name }} ({{ sc.probabilityPercent }}% xác suất)</strong>
+                <span class="sc-val">{{ formatCurrency(sc.targetPrice) }} ({{ sc.percentChange >= 0 ? '+' : '' }}{{ sc.percentChange }}%)</span>
+              </div>
+              <p class="sc-cond"><strong>Điều kiện:</strong> {{ sc.triggerCondition }}</p>
+              <p class="sc-desc">{{ sc.description }}</p>
+            </div>
+          }
+        </div>
+
+        <!-- INSTITUTIONAL TABLE -->
+        <div class="institutions-wrap">
+          <h3>Dự Báo Từ Các Nguồn Chính Thống</h3>
+          <table class="inst-table">
+            <thead>
+              <tr>
+                <th>Nguồn / Tổ chức</th>
+                <th>Mục tiêu giá</th>
+                <th>Thời hạn</th>
+                <th>Luận điểm phân tích</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of pred.institutionalForecasts; track item.source) {
+                <tr>
+                  <td><strong>{{ item.source }}</strong></td>
+                  <td class="target-col">{{ formatCurrency(item.targetPrice) }}</td>
+                  <td>{{ item.timeframe }}</td>
+                  <td class="rationale-col">{{ item.rationale }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- STRATEGIC ADVICE -->
+        <div class="advice-card">
+          <div class="adv-icon">💡</div>
+          <div>
+            <h4>{{ pred.overallSentiment }}</h4>
+            <p>{{ pred.strategicAdvice }}</p>
+          </div>
+        </div>
+
+      </div>
+    }
+
+  </main>
+}

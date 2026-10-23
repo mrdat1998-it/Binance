@@ -1,0 +1,3136 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binance Cycle & Price Predictor - Phân Tích Chu Kỳ & Biểu Đồ Giá Coin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0b0e14;
+      --card-bg: #121722;
+      --card-border: #1e2638;
+      --accent-yellow: #f0b90b;
+      --accent-gold: #fcd535;
+      --green: #0ecb81;
+      --red: #f6465d;
+      --text-main: #eaecef;
+      --text-muted: #848e9c;
+      --text-sub: #b7bdc6;
+      --blue: #2962ff;
+      --purple: #8c52ff;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* HEADER */
+    header {
+      background-color: rgba(18, 23, 34, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand svg {
+      width: 32px;
+      height: 32px;
+      fill: var(--accent-yellow);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-tag {
+      background: rgba(240, 185, 11, 0.15);
+      color: var(--accent-yellow);
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      border: 1px solid rgba(240, 185, 11, 0.3);
+    }
+
+    .header-metrics {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .fng-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 6px 14px;
+      border-radius: 30px;
+      border: 1px solid var(--card-border);
+      font-size: 0.82rem;
+    }
+
+    .fng-gauge {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .fng-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* QUICK COIN BAR */
+    .coin-bar-wrapper {
+      background: #0e121b;
+      border-bottom: 1px solid var(--card-border);
+      overflow-x: auto;
+      white-space: nowrap;
+      padding: 10px 24px;
+      display: flex;
+      gap: 10px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--card-border) transparent;
+    }
+
+    .coin-tab {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 8px 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .coin-tab:hover {
+      border-color: rgba(240, 185, 11, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .coin-tab.active {
+      border-color: var(--accent-yellow);
+      background: rgba(240, 185, 11, 0.08);
+      box-shadow: 0 0 16px rgba(240, 185, 11, 0.15);
+    }
+
+    .coin-tab img {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+    }
+
+    .coin-tab-symbol {
+      font-weight: 700;
+      font-size: 0.88rem;
+    }
+
+    .coin-tab-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .pct-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .pct-up {
+      color: var(--green);
+      background: rgba(14, 203, 129, 0.12);
+    }
+
+    .pct-down {
+      color: var(--red);
+      background: rgba(246, 70, 93, 0.12);
+    }
+
+    /* MAIN CONTAINER */
+    .container {
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      flex: 1;
+    }
+
+    /* HERO OVERVIEW */
+    .hero-banner {
+      background: linear-gradient(135deg, #131926 0%, #171f30 100%);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 20px 28px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .hero-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .hero-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .hero-name-block h1 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hero-symbol-badge {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .hero-category {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .hero-price-block {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+    }
+
+    .hero-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .hero-stats-grid {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    /* GRID LAYOUT */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1200px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 12px;
+    }
+
+    .panel-title {
+      font-size: 1.12rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* CHART CONTROLS & CANVAS */
+    .chart-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .timeframe-group {
+      display: flex;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      border: 1px solid var(--card-border);
+    }
+
+    .tf-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tf-btn:hover {
+      color: #fff;
+    }
+
+    .tf-btn.active {
+      background: var(--card-border);
+      color: var(--accent-yellow);
+    }
+
+    .chart-canvas-wrapper {
+      position: relative;
+      width: 100%;
+      height: 440px;
+      background: #0d111a;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--card-border);
+      overflow: hidden;
+    }
+
+    #chart-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+    }
+    #chart-canvas:active {
+      cursor: grabbing;
+    }
+
+    .chart-tooltip {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(18, 23, 34, 0.92);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-sub);
+      pointer-events: none;
+      display: flex;
+      gap: 14px;
+      z-index: 10;
+    }
+
+    .chart-legend {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-color {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    /* CYCLE ANALYSIS PANEL */
+    .cycle-stage-card {
+      background: linear-gradient(135deg, rgba(41, 98, 255, 0.1) 0%, rgba(140, 82, 255, 0.1) 100%);
+      border: 1px solid rgba(41, 98, 255, 0.3);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+
+    .cycle-stage-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #60a5fa;
+      background: rgba(59, 130, 246, 0.15);
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-bottom: 6px;
+    }
+
+    .cycle-stage-name {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .cycle-stage-desc {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      line-height: 1.5;
+    }
+
+    .progress-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .progress-bar-bg {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #f0b90b 0%, #0ecb81 100%);
+      border-radius: 4px;
+      transition: width 0.6s ease;
+    }
+
+    .metric-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .mini-metric-card {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+    }
+
+    .mini-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .mini-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.12rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .mini-sub {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* PREDICTION TARGETS */
+    .predictions-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .predictions-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 550px) {
+      .predictions-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .target-card {
+      background: #0f131c;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .target-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--card-border);
+    }
+
+    .target-card.highlight::before {
+      background: var(--accent-yellow);
+    }
+
+    .target-card.peak::before {
+      background: linear-gradient(90deg, #8c52ff, #f6465d);
+    }
+
+    .target-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .target-period {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+
+    .target-conf {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--green);
+      background: rgba(14, 203, 129, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .target-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .target-range {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 6px;
+    }
+
+    /* SCENARIOS & INSTITUTIONS */
+    .split-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 992px) {
+      .split-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .scenario-card {
+      background: #0e121a;
+      border-left: 4px solid var(--blue);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .scenario-card.bull {
+      border-left-color: var(--green);
+      background: rgba(14, 203, 129, 0.03);
+    }
+
+    .scenario-card.base {
+      border-left-color: var(--accent-yellow);
+      background: rgba(240, 185, 11, 0.03);
+    }
+
+    .scenario-card.bear {
+      border-left-color: var(--red);
+      background: rgba(246, 70, 93, 0.03);
+    }
+
+    .scenario-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .scenario-title {
+      font-weight: 700;
+      font-size: 0.88rem;
+    }
+
+    .scenario-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      font-size: 1rem;
+    }
+
+    .scenario-detail {
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      line-height: 1.45;
+    }
+
+    .source-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .source-table th {
+      text-align: left;
+      padding: 8px 10px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--card-border);
+      font-weight: 600;
+    }
+
+    .source-table td {
+      padding: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      vertical-align: top;
+    }
+
+    .source-badge {
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .source-target {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .source-rationale {
+      color: var(--text-sub);
+      font-size: 0.75rem;
+      line-height: 1.4;
+    }
+
+    .advice-banner {
+      background: linear-gradient(90deg, rgba(240, 185, 11, 0.12) 0%, rgba(14, 203, 129, 0.12) 100%);
+      border: 1px solid rgba(240, 185, 11, 0.35);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .advice-icon {
+      font-size: 1.8rem;
+    }
+
+    .advice-content h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent-gold);
+      margin-bottom: 3px;
+    }
+
+    .advice-content p {
+      font-size: 0.85rem;
+      color: var(--text-main);
+      line-height: 1.45;
+    }
+
+    /* FUTURES (FT) SECTION STYLES */
+    .futures-panel {
+      border: 1px solid rgba(240, 185, 11, 0.25);
+      background: radial-gradient(circle at top right, rgba(240, 185, 11, 0.05), var(--card-bg) 60%);
+    }
+
+    .ft-top-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 992px) {
+      .ft-top-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 550px) {
+      .ft-top-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ft-stat-card {
+      background: #0d111a;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ft-stat-title {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ft-stat-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .ft-stat-sub {
+      font-size: 0.72rem;
+      color: var(--text-sub);
+    }
+
+    /* LONG SHORT BAR */
+    .ls-bar-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ls-track {
+      height: 10px;
+      border-radius: 5px;
+      display: flex;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .ls-long {
+      background: var(--green);
+      transition: width 0.5s ease;
+    }
+
+    .ls-short {
+      background: var(--red);
+      transition: width 0.5s ease;
+    }
+
+    .ls-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+    }
+
+    /* SIGNAL SETUP CARD */
+    .ft-signal-box {
+      background: linear-gradient(135deg, rgba(14, 203, 129, 0.06) 0%, rgba(41, 98, 255, 0.06) 100%);
+      border: 1px solid rgba(14, 203, 129, 0.3);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .ft-signal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .ft-action-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      font-size: 0.95rem;
+      padding: 6px 14px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ft-action-long {
+      background: rgba(14, 203, 129, 0.18);
+      color: var(--green);
+      border: 1px solid rgba(14, 203, 129, 0.4);
+    }
+
+    .ft-action-short {
+      background: rgba(246, 70, 93, 0.18);
+      color: var(--red);
+      border: 1px solid rgba(246, 70, 93, 0.4);
+    }
+
+    .ft-action-neutral {
+      background: rgba(240, 185, 11, 0.15);
+      color: var(--accent-yellow);
+      border: 1px solid rgba(240, 185, 11, 0.4);
+    }
+
+    .ft-levels-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+    }
+
+    @media (max-width: 900px) {
+      .ft-levels-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .ft-level-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .ft-level-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .ft-level-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+
+    /* ICT & MOMENTUM CONFLUENCE STYLES */
+    .ict-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 14px;
+    }
+    @media (max-width: 992px) {
+      .ict-grid-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+    .ict-card {
+      background: rgba(14, 18, 26, 0.85);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .ict-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .ict-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      padding: 4px 0;
+    }
+    .ict-row-label {
+      color: var(--text-muted);
+    }
+    .ict-row-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: #fff;
+      text-align: right;
+    }
+    .ict-tag {
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      display: inline-block;
+    }
+    .ict-tag-long {
+      background: rgba(14, 203, 129, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(14, 203, 129, 0.3);
+    }
+    .ict-tag-short {
+      background: rgba(246, 70, 93, 0.15);
+      color: var(--red);
+      border: 1px solid rgba(246, 70, 93, 0.3);
+    }
+    .ict-tag-neutral {
+      background: rgba(240, 185, 11, 0.15);
+      color: var(--accent-yellow);
+      border: 1px solid rgba(240, 185, 11, 0.3);
+    }
+    .rsi-gauge-bar {
+      height: 8px;
+      background: linear-gradient(90deg, #0ecb81 0%, #2962ff 50%, #f6465d 100%);
+      border-radius: 4px;
+      position: relative;
+      margin: 8px 0 4px 0;
+    }
+    .rsi-pin {
+      position: absolute;
+      top: -3px;
+      width: 14px;
+      height: 14px;
+      background: #fff;
+      border: 2px solid #000;
+      border-radius: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 6px rgba(0,0,0,0.8);
+      transition: left 0.4s ease;
+    }
+    .confluence-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 0.78rem;
+    }
+    .confluence-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      color: var(--text-sub);
+      line-height: 1.4;
+    }
+    .confluence-icon {
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    /* DAILY BIAS MULTI-TIMEFRAME STYLES */
+    .daily-bias-card {
+      background: linear-gradient(135deg, rgba(20, 26, 38, 0.95) 0%, rgba(13, 17, 26, 0.95) 100%);
+      border: 1px solid rgba(41, 98, 255, 0.35);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .bias-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 992px) {
+      .bias-grid-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+    .bias-pillar {
+      background: rgba(10, 13, 20, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+    }
+    .bias-pillar.pillar-d1 {
+      border-top: 3px solid #f0b90b;
+    }
+    .bias-pillar.pillar-h4 {
+      border-top: 3px solid #2962ff;
+    }
+    .bias-pillar.pillar-m15 {
+      border-top: 3px solid #0ecb81;
+    }
+    .bias-pillar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .bias-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      font-size: 0.78rem;
+      padding: 3px 10px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .bias-badge-bull {
+      background: rgba(14, 203, 129, 0.2);
+      color: var(--green);
+      border: 1px solid rgba(14, 203, 129, 0.4);
+    }
+    .bias-badge-bear {
+      background: rgba(246, 70, 93, 0.2);
+      color: var(--red);
+      border: 1px solid rgba(246, 70, 93, 0.4);
+    }
+    .bias-badge-neutral {
+      background: rgba(240, 185, 11, 0.2);
+      color: var(--accent-yellow);
+      border: 1px solid rgba(240, 185, 11, 0.4);
+    }
+    .bias-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.76rem;
+      padding: 3px 0;
+    }
+    .bias-action-banner {
+      background: rgba(41, 98, 255, 0.08);
+      border: 1px solid rgba(41, 98, 255, 0.3);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    /* REALTIME WEBSOCKET ANIMATIONS */
+    .price-up-flash {
+      animation: flashGreen 0.7s ease-out;
+    }
+
+    .price-down-flash {
+      animation: flashRed 0.7s ease-out;
+    }
+
+    @keyframes flashGreen {
+      0% { color: #0ecb81; text-shadow: 0 0 16px rgba(14, 203, 129, 0.9); transform: scale(1.02); }
+      100% { color: #fff; text-shadow: none; transform: scale(1); }
+    }
+
+    @keyframes flashRed {
+      0% { color: #f6465d; text-shadow: 0 0 16px rgba(246, 70, 93, 0.9); transform: scale(1.02); }
+      100% { color: #fff; text-shadow: none; transform: scale(1); }
+    }
+
+    .live-pulse {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      display: inline-block;
+      animation: pulseGreen 1.5s infinite;
+    }
+
+    @keyframes pulseGreen {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(14, 203, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(14, 203, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(14, 203, 129, 0); }
+    }
+
+    .live-stream-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(14, 203, 129, 0.08);
+      border: 1px solid rgba(14, 203, 129, 0.3);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+    }
+
+    footer {
+      background: #0a0c12;
+      border-top: 1px solid var(--card-border);
+      padding: 18px 24px;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <svg viewBox="0 0 32 32">
+        <path d="M16 2L20.2 6.2L11.8 14.6L7.6 10.4L16 2Z"></path>
+        <path d="M24.4 10.4L28.6 14.6L16 27.2L3.4 14.6L7.6 10.4L16 18.8L24.4 10.4Z"></path>
+        <path d="M16 8.4L20.2 12.6L16 16.8L11.8 12.6L16 8.4Z"></path>
+      </svg>
+      <div>
+        <div class="brand-title">
+          Binance Tracker & Cycle Intelligence
+          <span class="brand-tag">C# API + Angular Architecture</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-metrics">
+      <div class="fng-pill" id="fng-container">
+        <div class="fng-gauge" id="fng-gauge"></div>
+        <span>Tâm lý:</span>
+        <span class="fng-val" id="fng-val">50/100</span>
+        <span id="fng-label" style="color: var(--text-muted); font-size: 0.78rem;">(Trung lập)</span>
+      </div>
+      <div class="live-stream-badge">
+        <span class="live-pulse"></span>
+        <span id="ws-status-text" style="color:var(--green); font-weight:700;">WEBSOCKET TRỰC TIẾP</span>
+        <span id="live-clock" style="font-family:'JetBrains Mono'; color:#fff; font-size:0.75rem; border-left:1px solid rgba(255,255,255,0.1); padding-left:8px;">--:--:--</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- QUICK COIN SELECTOR BAR -->
+  <div class="coin-bar-wrapper" id="coin-bar">
+    <div style="padding: 10px; color: var(--text-muted);">Đang kết nối API Binance...</div>
+  </div>
+
+  <!-- MAIN DASHBOARD -->
+  <main class="container">
+
+    <!-- HERO OVERVIEW -->
+    <section class="hero-banner" id="hero-banner">
+      <div class="hero-left">
+        <img id="hero-icon" class="hero-icon" src="https://assets.coingecko.com/coins/images/1/large/bitcoin.png" alt="Coin">
+        <div class="hero-name-block">
+          <h1 id="hero-name">
+            Bitcoin <span id="hero-symbol" class="hero-symbol-badge">BTC/USDT</span>
+          </h1>
+          <div id="hero-category" class="hero-category">Layer 1 / Tiền kỹ thuật số chuẩn</div>
+        </div>
+      </div>
+
+      <div class="hero-price-block">
+        <div id="hero-price" class="hero-price">$81,500.00</div>
+        <div id="hero-change" class="pct-badge pct-down">-3.12%</div>
+      </div>
+
+      <div class="hero-stats-grid">
+        <div class="stat-item">
+          <span class="stat-label">Cao nhất 24h</span>
+          <span class="stat-value" id="stat-high">$84,377.21</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Thấp nhất 24h</span>
+          <span class="stat-value" id="stat-low">$80,939.54</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Khối lượng (24h)</span>
+          <span class="stat-value" id="stat-vol">20.1K BTC</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Đỉnh lịch sử (ATH)</span>
+          <span class="stat-value" id="stat-ath">$108,900.00</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Giảm từ ATH</span>
+          <span class="stat-value" id="stat-drawdown" style="color: var(--red);">-25.2%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD: CHART + CYCLE INTELLIGENCE -->
+    <section class="dashboard-grid">
+      
+      <!-- INTERACTIVE PRICE CHART (BUILT-IN CANVAS FINANCIAL ENGINE) -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            Biểu Đồ Đường Giá Nến Kỹ Thuật (Candlestick Chart)
+          </div>
+          <div class="chart-controls">
+            <div class="timeframe-group">
+              <button class="tf-btn" data-interval="5m" data-limit="100">5M</button>
+              <button class="tf-btn active" data-interval="15m" data-limit="100">15M</button>
+              <button class="tf-btn" data-interval="1h" data-limit="90">1H</button>
+              <button class="tf-btn" data-interval="4h" data-limit="90">4H</button>
+              <button class="tf-btn" data-interval="1d" data-limit="120">1D</button>
+              <button class="tf-btn" data-interval="1w" data-limit="104">1W</button>
+            </div>
+            <button id="btn-reset-chart" class="tf-btn" style="display:none; color:var(--accent-yellow); border:1px solid rgba(240,185,11,0.4); background:rgba(240,185,11,0.12); margin-left:6px; font-weight:700;" onclick="resetChartView()">
+              ↺ Đặt Lại Góc Nhìn
+            </button>
+          </div>
+        </div>
+
+        <!-- CANVAS CHART CONTAINER -->
+        <div class="chart-canvas-wrapper" id="chart-wrapper">
+          <div class="chart-tooltip" id="chart-tooltip">
+            <span>O: <b id="tt-o">-</b></span>
+            <span>H: <b id="tt-h">-</b></span>
+            <span>L: <b id="tt-l">-</b></span>
+            <span>C: <b id="tt-c">-</b></span>
+            <span>Ngày: <span id="tt-d">-</span></span>
+          </div>
+          <canvas id="chart-canvas"></canvas>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div class="chart-legend">
+            <div class="legend-item"><span class="legend-color" style="background:#0ecb81"></span> Nến tăng</div>
+            <div class="legend-item"><span class="legend-color" style="background:#f6465d"></span> Nến giảm</div>
+            <div class="legend-item"><span class="legend-color" style="background:#f0b90b"></span> EMA 20</div>
+            <div class="legend-item"><span class="legend-color" style="background:#2962ff"></span> EMA 50</div>
+            <div class="legend-item"><span class="legend-color" style="background:#a855f7"></span> EMA 200</div>
+            <div class="legend-item"><span class="legend-color" style="background:rgba(240,185,11,0.6)"></span> Vùng FVG</div>
+            <div class="legend-item"><span class="legend-color" style="background:rgba(14,203,129,0.6)"></span> Khối OB</div>
+            <div class="legend-item"><span class="legend-color" style="background:#00e5ff"></span> Entry</div>
+            <div class="legend-item"><span class="legend-color" style="background:#f6465d"></span> SL</div>
+            <div class="legend-item"><span class="legend-color" style="background:#0ecb81"></span> TP</div>
+          </div>
+          <div style="font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+            <span>🖱️ Kéo chuột <b>trên / dưới / trái / phải</b> để di chuyển • Lăn chuột để zoom • Nhấp đúp để đặt lại</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CYCLE INTELLIGENCE PANEL -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            Phân Tích Thay Đổi Chu Kỳ (Cycle Analysis)
+          </div>
+          <span class="brand-tag" id="risk-badge" style="background: rgba(240, 185, 11, 0.15); color: var(--accent-yellow);">Rủi ro: 4/10 (Trung bình)</span>
+        </div>
+
+        <!-- STAGE CARD -->
+        <div class="cycle-stage-card">
+          <span class="cycle-stage-badge" id="cycle-stage-badge">Giai đoạn chu kỳ Halving</span>
+          <div class="cycle-stage-name" id="cycle-stage-name">Giai đoạn Tích lũy & Tăng trưởng Sớm</div>
+          <div class="cycle-stage-desc" id="cycle-stage-desc">
+            Sau Halving tháng 4/2024, nguồn cung khai thác hàng ngày giảm 50%. Thị trường trải qua giai đoạn tích lũy động lượng trước khi bước vào chu kỳ tăng trưởng chính.
+          </div>
+        </div>
+
+        <!-- PROGRESS SECTION -->
+        <div class="progress-section">
+          <div class="progress-header">
+            <span>Tiến độ chu kỳ Halving 4 năm</span>
+            <span id="cycle-progress-pct" style="font-weight:700; color:#fff">62.7%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="cycle-progress-fill" style="width: 62.7%"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+            <span id="days-since-halving">Đã qua: 916 ngày</span>
+            <span id="days-to-halving">Còn lại: 539 ngày tới Halving 2028 (~2028-04-15)</span>
+          </div>
+        </div>
+
+        <!-- MINI METRICS -->
+        <div class="metric-grid-2">
+          <div class="mini-metric-card">
+            <div class="mini-label">Bội số Mayer (Mayer Multiple)</div>
+            <div class="mini-val" id="mayer-multiple">1.12</div>
+            <div class="mini-sub">&lt;0.8 Gom hàng | &gt;2.4 Vùng đỉnh</div>
+          </div>
+          <div class="mini-metric-card">
+            <div class="mini-label">Chỉ số Sức mạnh RSI (14D)</div>
+            <div class="mini-val" id="rsi-val">45.6</div>
+            <div class="mini-sub">&lt;30 Quá bán | &gt;70 Quá mua</div>
+          </div>
+          <div class="mini-metric-card">
+            <div class="mini-label">Đường trung bình 200 ngày (SMA200)</div>
+            <div class="mini-val" id="sma-200">$72,899.00</div>
+            <div class="mini-sub" id="sma-distance">Cách biệt: +11.8%</div>
+          </div>
+          <div class="mini-metric-card">
+            <div class="mini-label">Tín hiệu Đỉnh Pi Cycle (Pi Top)</div>
+            <div class="mini-val" id="pi-cycle-status" style="font-size:0.85rem; color:var(--green)">An toàn / Chưa giao cắt</div>
+            <div class="mini-sub">111 DMA vs 2x 350 DMA</div>
+          </div>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.02); border-left:3px solid var(--accent-yellow); padding:10px 14px; border-radius:0 6px 6px 0; font-size:0.8rem; color:var(--text-sub);">
+          <strong style="color:var(--accent-yellow)">So sánh lịch sử chu kỳ:</strong>
+          <span id="hist-comp">Tương đồng chu kỳ 2016 và 2020: Thị trường đi ngang từ 4-6 tháng tích lũy trước khi bứt phá mạnh mẽ sang giai đoạn parabolic bull run.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- FUTURES (FT) MARKET INTELLIGENCE & SIGNALS -->
+    <section class="panel futures-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+          Phân Tích Hợp Đồng Tương Lai & Phái Sinh (Binance Futures - FT)
+          <span class="brand-tag" style="background:rgba(240,185,11,0.2); color:var(--accent-yellow); margin-left:8px;">Live fapi.binance.com</span>
+        </div>
+        <div style="font-size:0.8rem; color:var(--text-muted);" id="ft-next-funding">
+          Kỳ Funding kế tiếp: Đang tính...
+        </div>
+      </div>
+
+      <!-- MULTI-TIMEFRAME DAILY BIAS SYSTEM (D1 TỔNG - H4 TRUNG HẠN - M15 VÀO LỆNH) -->
+      <div class="daily-bias-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div>
+            <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; letter-spacing:0.5px; display:flex; align-items:center; gap:6px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              HỆ THỐNG DAILY BIAS ĐA KHUNG THỜI GIAN (ICT MTF ALIGNMENT)
+            </div>
+            <h3 style="font-size:1.05rem; font-weight:800; color:#fff; margin-top:3px; display:flex; align-items:center; gap:8px;">
+              <span>Daily Bias Tổng D1</span>
+              <span style="color:var(--text-muted); font-size:0.85rem;">➔</span>
+              <span>Cấu Trúc H4</span>
+              <span style="color:var(--text-muted); font-size:0.85rem;">➔</span>
+              <span>Điểm Vào Lệnh M15</span>
+            </h3>
+          </div>
+          <div style="text-align:right; display:flex; align-items:center; gap:8px;">
+            <span class="bias-badge bias-badge-bull" id="db-alignment-status">🟢 ĐỒNG THUẬN TUYỆT ĐỐI (KÈO A+ LONG)</span>
+            <span class="brand-tag" id="db-alignment-score" style="font-size:0.8rem; padding:4px 10px;">100% Cùng Pha</span>
+          </div>
+        </div>
+
+        <!-- 3-PILLAR GRID: D1, H4, M15 -->
+        <div class="bias-grid-3">
+          <!-- PILLAR 1: D1 TỔNG -->
+          <div class="bias-pillar pillar-d1">
+            <div class="bias-pillar-header">
+              <span style="font-weight:700; color:#f0b90b; font-size:0.82rem; display:flex; align-items:center; gap:6px;">
+                <span style="width:8px; height:8px; border-radius:50%; background:#f0b90b;"></span>
+                1. Daily Bias Tổng (D1)
+              </span>
+              <span class="bias-badge bias-badge-bear" id="db-d1-badge">BEARISH</span>
+            </div>
+            <div class="bias-row">
+              <span style="color:var(--text-muted)">Cấu Trúc D1:</span>
+              <span style="font-family:'JetBrains Mono'; font-weight:700; color:#fff;" id="db-d1-struct">Lower Highs / Lows</span>
+            </div>
+            <div class="bias-row">
+              <span style="color:var(--text-muted)">Khung Giá PDH - PDL:</span>
+              <span style="font-family:'JetBrains Mono'; font-weight:700; color:#f0b90b;" id="db-d1-pdh-pdl">$80,888 - $84,330</span>
+            </div>
+            <div style="font-size:0.72rem; color:var(--text-sub); line-height:1.4; background:rgba(0,0,0,0.25); padding:6px 8px; border-radius:4px;" id="db-d1-sweep">
+              Dao động tích lũy trong biên độ ngày trước...
+            </div>
+            <div class="bias-row">
+              <span style="color:var(--text-muted)">D1 EMA 20 / EMA 50:</span>
+              <span style="font-family:'JetBrains Mono'; font-size:0.72rem; color:#fff;" id="db-d1-ema">$82,801 / $83,325</span>
+            </div>
+            <div class="bias-row">
+              <span style="color:var(--text-muted)">D1 RSI 14:</span>
+              <span style="font-family:'JetBrains Mono'; font-weight:700; color:#fff;" id="db-d1-rsi">46.4 (Phe Gấu Ép)</span>
+            </div>
+          </div>
+
+          <!-- PILLAR 2: H4 TRUNG HẠN -->
+          <div class="bias-pillar pillar-h4">
+            <div class="bias-pillar-header">
+              <span style="font-weight:700; color:#2962ff; font-size:0.82rem; display:flex; align-items:center; gap:6px;">
+                <span style="width:8px; height:8px; border-radius:50%; background:#2962ff;"></span>
+                2. Bias Trung Hạn (H4)
+              </span>
+              <span class="bias-badge bias-badge-bear" id="db-h4-badge">BEARISH</span>
+            </div>
+            <div class="bias-row">
+              <span style="color:var(--text-muted)">Cấu Trúc Sóng H4:</span>
+              <span style="font-family:'JetBrains Mono'; font-weight:700; color:#fff;" id="db-h4-struct">H4 BOS Giảm</span>
+            </div>
+            <div class="bias-row">
+              <span style="color:var(--text-muted)">Khối Cản / Cầu H4 POI:</span>
+              <span style="font-family:'JetBrains Mono'; font-size:0.7rem; font-weight:700; color:var(--red);" id="db-h4-zone">$81,405 - $82,227</span>
+            </div>
+            <div style="font-size:0.72rem; color:var(--text-sub); line-height:1.4; background:rgba(0,0,0,0.25); padding:6px 8px; border-radius:4px;" id="db-h4-desc">
+              H4 duy trì cấu trúc Bearish, phe bán đè giá tại các kháng cự...
+            </div>
+            <div class="bias-row">
+              <span style="color:var(--text-muted)">H4 EMA 50:</span>
+              <span style="font-family:'JetBrains Mono'; font-size:0.72rem; color:#2962ff;" id="db-h4-ema">$82,077</span>
+            </div>
+            <div class="bias-row">
+              <span style="color:var(--text-muted)">H4 RSI 14:</span>
+              <span style="font-family:'JetBrains Mono'; font-weight:700; color:#fff;" id="db-h4-rsi">38.7 (Yếu)</span>
+            </div>
+          </div>
+
+          <!-- PILLAR 3: M15 VÀO LỆNH -->
+          <div class="bias-pillar pillar-m15">
+            <div class="bias-pillar-header">
+              <span style="font-weight:700; color:#0ecb81; font-size:0.82rem; display:flex; align-items:center; gap:6px;">
+                <span style="width:8px; height:8px; border-radius:50%; background:#0ecb81;"></span>
+                3. Bias Vào Lệnh (M15)
+              </span>
+              <span class="bias-badge bias-badge-bull" id="db-m15-badge">BULLISH</span>
+            </div>
+            <div class="bias-row">
+              <span style="color:var(--text-muted)">Tín Hiệu Kích Hoạt (Trigger):</span>
+              <span style="font-family:'JetBrains Mono'; font-weight:700; color:var(--green);" id="db-m15-trigger">M15 CHoCH Tăng</span>
+            </div>
+            <div class="bias-row">
+              <span style="color:var(--text-muted)">Vùng Vào Lệnh M15:</span>
+              <span style="font-family:'JetBrains Mono'; font-size:0.72rem; font-weight:700; color:var(--accent-yellow);" id="db-m15-zone">Limit: $81,786 - $81,651</span>
+            </div>
+            <div style="font-size:0.72rem; color:var(--text-sub); line-height:1.4; background:rgba(0,0,0,0.25); padding:6px 8px; border-radius:4px;" id="db-m15-desc">
+              M15 Động Lượng Tăng Sắc Nét (Giá trên EMA20 M15, RSI > 50)...
+            </div>
+            <div class="bias-row">
+              <span style="color:var(--text-muted)">M15 EMA 20:</span>
+              <span style="font-family:'JetBrains Mono'; font-size:0.72rem; color:#f0b90b;" id="db-m15-ema">$81,624</span>
+            </div>
+            <div class="bias-row">
+              <span style="color:var(--text-muted)">M15 RSI 14:</span>
+              <span style="font-family:'JetBrains Mono'; font-weight:700; color:#fff;" id="db-m15-rsi">57.3 (Bật Hồi)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIONABLE STRATEGY BANNER -->
+        <div class="bias-action-banner">
+          <div style="font-size:0.8rem; font-weight:800; color:var(--accent-yellow); display:flex; align-items:center; gap:6px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            KẾ HOẠCH HÀNH ĐỘNG THỰC CHIẾN ĐA KHUNG (ACTIONABLE TRADING PLAN):
+          </div>
+          <div style="font-size:0.8rem; color:var(--text-main); line-height:1.5;" id="db-action-plan">
+            D1 & H4 là xu hướng Giảm lớn, nhịp tăng M15 chỉ là hồi kỹ thuật săn thanh khoản (Premium). Hành động: Canh giá chạm vùng cản Bearish OB H4 để tìm tín hiệu SHORT.
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 TOP METRIC CARDS -->
+      <div class="ft-top-grid">
+        <!-- Funding Rate Card -->
+        <div class="ft-stat-card">
+          <div class="ft-stat-title">
+            <span>Phí Cấp Vốn (Funding Rate 8H)</span>
+            <span id="ft-funding-badge" class="pct-badge pct-up">+0.005%</span>
+          </div>
+          <div class="ft-stat-val" id="ft-funding-val">+0.0053%</div>
+          <div class="ft-stat-sub">
+            Quy đổi năm: <b id="ft-funding-apr" style="color:var(--accent-yellow)">~5.85% APR</b>
+          </div>
+          <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;" id="ft-funding-note">
+            Phe Long trả phí phe Short. Tâm lý tích cực.
+          </div>
+        </div>
+
+        <!-- Long / Short Ratio Card -->
+        <div class="ft-stat-card">
+          <div class="ft-stat-title">
+            <span>Tỷ Lệ Tài Khoản Long / Short</span>
+            <span id="ft-ls-ratio" style="font-family:'JetBrains Mono'; font-weight:700; color:var(--green)">2.11</span>
+          </div>
+          <div class="ls-bar-container">
+            <div class="ls-labels">
+              <span style="color:var(--green)">Long: <b id="ft-long-pct">67.8%</b></span>
+              <span style="color:var(--red)">Short: <b id="ft-short-pct">32.2%</b></span>
+            </div>
+            <div class="ls-track">
+              <div class="ls-long" id="ft-ls-long-bar" style="width: 67.8%"></div>
+              <div class="ls-short" id="ft-ls-short-bar" style="width: 32.2%"></div>
+            </div>
+          </div>
+          <div style="font-size:0.7rem; color:var(--text-muted); margin-top:4px;" id="ft-ls-desc">
+            Phe Long chiếm đa số (>65%). Cảnh báo quét lệnh đòn bẩy cao.
+          </div>
+        </div>
+
+        <!-- Open Interest Card -->
+        <div class="ft-stat-card">
+          <div class="ft-stat-title">
+            <span>Khối Lượng Hợp Đồng Mở (OI)</span>
+            <span style="color:var(--blue); font-size:0.72rem; font-weight:700;">Đòn Bẩy Vị Thế</span>
+          </div>
+          <div class="ft-stat-val" id="ft-oi-usd">$7.80 Tỷ</div>
+          <div class="ft-stat-sub">
+            Số lượng: <b id="ft-oi-coin" style="color:#fff">95,954 BTC</b>
+          </div>
+          <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;" id="ft-oi-desc">
+            Dòng vốn phái sinh dồi dào, biên độ quét râu mở rộng.
+          </div>
+        </div>
+
+        <!-- Mark vs Index Price Card -->
+        <div class="ft-stat-card">
+          <div class="ft-stat-title">
+            <span>Giá Đánh Dấu (Mark Price)</span>
+            <span style="font-size:0.72rem; color:var(--text-muted);">Độ lệch Basis</span>
+          </div>
+          <div class="ft-stat-val" id="ft-mark-price">$81,319.40</div>
+          <div class="ft-stat-sub">
+            Giá Index: <span id="ft-index-price">$81,343.30</span> | Basis: <b id="ft-basis-val">-$23.90</b>
+          </div>
+          <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;">
+            Dùng để tính toán thanh lý và PnL thực tế trên Binance Futures.
+          </div>
+        </div>
+      </div>
+
+      <!-- LIQUIDATION POOLS -->
+      <div style="background:#0e121a; border:1px solid var(--card-border); border-radius:var(--radius-md); padding:16px; margin-bottom:16px;">
+        <h4 style="font-size:0.9rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span style="width:4px; height:14px; background:var(--red); border-radius:2px;"></span>
+          Bản Đồ Cụm Thanh Lý Hợp Đồng Mở (Liquidation Heatmap)
+        </h4>
+        <div style="display:flex; justify-content:space-between; gap:12px; margin-top:8px;">
+          <div style="flex:1; background:rgba(246,70,93,0.06); border:1px solid rgba(246,70,93,0.25); border-radius:6px; padding:10px;">
+            <div style="font-size:0.72rem; color:var(--red); font-weight:700;">CỤM THANH LÝ LONG (DƯỚI)</div>
+            <div style="font-family:'JetBrains Mono'; font-weight:800; font-size:1.15rem; color:#fff; margin:4px 0;" id="ft-liq-long">$78,717.00</div>
+            <div style="font-size:0.7rem; color:var(--text-muted);">Vùng quét thanh lý các vị thế Long 20x - 50x. Thường là điểm hỗ trợ bật hồi cực mạnh.</div>
+          </div>
+          <div style="flex:1; background:rgba(14,203,129,0.06); border:1px solid rgba(14,203,129,0.25); border-radius:6px; padding:10px;">
+            <div style="font-size:0.72rem; color:var(--green); font-weight:700;">CỤM THANH LÝ SHORT (TRÊN)</div>
+            <div style="font-family:'JetBrains Mono'; font-weight:800; font-size:1.15rem; color:#fff; margin:4px 0;" id="ft-liq-short">$84,084.00</div>
+            <div style="font-size:0.7rem; color:var(--text-muted);">Vùng ép cắt lỗ các lệnh Short 20x - 50x (Short Squeeze). Giá dễ bị hút lên vùng này.</div>
+          </div>
+        </div>
+        <div style="font-size:0.75rem; color:var(--text-sub); line-height:1.4; margin-top:8px;" id="ft-liq-summary">
+          Cụm thanh lý Long chính nằm quanh vùng...
+        </div>
+      </div>
+
+      <!-- ICT + RSI + EMA TRADING STRATEGY SYSTEM (LONG / SHORT ORDER SETUP) -->
+      <div class="ft-signal-box" id="ict-order-box" style="border: 1px solid rgba(240, 185, 11, 0.35); background: linear-gradient(135deg, rgba(18, 23, 34, 0.95) 0%, rgba(11, 14, 20, 0.95) 100%);">
+        <div class="ft-signal-header">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">CHIẾN LƯỢC HỘI TỤ ICT + RSI 14 + EMA RIBBON</span>
+              <span class="ict-tag ict-tag-neutral" id="ict-conf-score">Độ tin cậy: 75%</span>
+            </div>
+            <div style="margin-top:6px;">
+              <span class="ft-action-badge ft-action-short" id="ict-setup-badge" style="font-size:1.05rem;">
+                🔻 MỞ VỊ THẾ SHORT (BÁN CANH TEST KHÁNG CỰ FVG/OB)
+              </span>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.72rem; color:var(--text-muted);">Tỷ lệ Lợi Nhuận / Rủi Ro (R:R):</div>
+            <b style="color:var(--green); font-size:1.1rem; font-family:'JetBrains Mono';" id="ict-rr-ratio">1 : 2.50</b>
+            <div style="font-size:0.75rem; color:var(--accent-yellow);" id="ict-rec-lev">5x - 10x Isolated</div>
+          </div>
+        </div>
+
+        <!-- 5-LEVEL TRADE EXECUTION NUMBERS -->
+        <div class="ft-levels-row" style="margin-top:4px;">
+          <div class="ft-level-item">
+            <span class="ft-level-label">Vùng Entry Tối Ưu</span>
+            <span class="ft-level-val" style="color:var(--accent-yellow);" id="ict-optimal-entry">$81,929.53</span>
+            <span style="font-size:0.65rem; color:var(--text-muted);">Limit Chờ Test</span>
+          </div>
+          <div class="ft-level-item">
+            <span class="ft-level-label">Dừng Lỗ (Stop Loss)</span>
+            <span class="ft-level-val" style="color:var(--red);" id="ict-sl">$83,499.85</span>
+            <span style="font-size:0.65rem; color:var(--red);">Bảo toàn vốn</span>
+          </div>
+          <div class="ft-level-item">
+            <span class="ft-level-label">Chốt Lời 1 (TP1 - 50%)</span>
+            <span class="ft-level-val" style="color:var(--green);" id="ict-tp1">$79,574.05</span>
+            <span style="font-size:0.65rem; color:var(--text-muted);">Dời SL về Entry</span>
+          </div>
+          <div class="ft-level-item">
+            <span class="ft-level-label">Chốt Lời 2 (TP2 - 30%)</span>
+            <span class="ft-level-val" style="color:var(--green);" id="ict-tp2">$78,003.73</span>
+            <span style="font-size:0.65rem; color:var(--text-muted);">Khoá 80% lợi nhuận</span>
+          </div>
+          <div class="ft-level-item">
+            <span class="ft-level-label">Chốt Lời 3 (TP3 - 20%)</span>
+            <span class="ft-level-val" style="color:var(--green);" id="ict-tp3">$75,962.31</span>
+            <span style="font-size:0.65rem; color:var(--text-muted);">Gồng hết sóng lớn</span>
+          </div>
+        </div>
+
+        <!-- 3-CARD DETAIL GRID: ICT, RSI, EMA -->
+        <div class="ict-grid-3">
+          <!-- CARD 1: ICT SMART MONEY CONCEPT -->
+          <div class="ict-card">
+            <div class="ict-card-header">
+              <span style="display:flex; align-items:center; gap:6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                1. Cấu Trúc ICT (SMC)
+              </span>
+              <span class="ict-tag ict-tag-neutral" id="ict-struct-tag">ICT Model</span>
+            </div>
+            <div class="ict-row">
+              <span class="ict-row-label">Cấu Trúc Thị Trường:</span>
+              <span class="ict-row-val" id="ict-structure" style="color:var(--accent-yellow)">BOS Giảm</span>
+            </div>
+            <div class="ict-row">
+              <span class="ict-row-label">Khối Lệnh Order Block:</span>
+              <span class="ict-row-val" id="ict-ob">$81,929 - $82,178</span>
+            </div>
+            <div class="ict-row">
+              <span class="ict-row-label">Khoảng Trống FVG:</span>
+              <span class="ict-row-val" id="ict-fvg">$81,902 - $81,929</span>
+            </div>
+            <div class="ict-row">
+              <span class="ict-row-label">Quét Thanh Khoản:</span>
+              <span class="ict-row-val" id="ict-sweep" style="color:var(--text-sub); font-size:0.72rem;">Quét đáy SSL</span>
+            </div>
+            <div class="ict-row">
+              <span class="ict-row-label">Vùng OTE Fib (0.618-0.786):</span>
+              <span class="ict-row-val" id="ict-ote">$82,207 - $82,552</span>
+            </div>
+          </div>
+
+          <!-- CARD 2: RSI 14 & DIVERGENCE -->
+          <div class="ict-card">
+            <div class="ict-card-header">
+              <span style="display:flex; align-items:center; gap:6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                2. Động Lượng RSI 14
+              </span>
+              <span class="ict-tag ict-tag-neutral" id="ict-rsi-val">RSI: 47.3</span>
+            </div>
+            <div class="rsi-gauge-bar">
+              <div class="rsi-pin" id="rsi-pin" style="left: 47.3%;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:var(--text-muted); margin-bottom:4px;">
+              <span style="color:var(--green)">0 (Quá Bán)</span>
+              <span>50 (Trung Lập)</span>
+              <span style="color:var(--red)">100 (Quá Mua)</span>
+            </div>
+            <div class="ict-row">
+              <span class="ict-row-label">Đánh Giá Động Lượng:</span>
+              <span class="ict-row-val" id="ict-rsi-sentiment" style="color:var(--accent-yellow)">Phe gấu kiểm soát</span>
+            </div>
+            <div class="ict-row">
+              <span class="ict-row-label">Tín Hiệu Phân Kỳ (Div):</span>
+              <span class="ict-row-val" id="ict-rsi-div" style="color:#fff">Không phân kỳ</span>
+            </div>
+          </div>
+
+          <!-- CARD 3: EMA RIBBON (20 / 50 / 200) -->
+          <div class="ict-card">
+            <div class="ict-card-header">
+              <span style="display:flex; align-items:center; gap:6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m2 17 6-6 4 4 8-8"/><path d="m14 7 6 0 0 6"/></svg>
+                3. Hệ Thống EMA Ribbon
+              </span>
+              <span class="ict-tag ict-tag-neutral" id="ict-ema-tag">Xu Hướng Trend</span>
+            </div>
+            <div class="ict-row">
+              <span class="ict-row-label">Trạng Thái Dải EMA:</span>
+              <span class="ict-row-val" id="ict-ema-trend" style="color:var(--red)">Death Cross Giảm</span>
+            </div>
+            <div class="ict-row">
+              <span class="ict-row-label">EMA 20 (Ngắn hạn - Vàng):</span>
+              <span class="ict-row-val" id="ict-ema20" style="color:#f0b90b">$81,812.33</span>
+            </div>
+            <div class="ict-row">
+              <span class="ict-row-label">EMA 50 (Trung hạn - Xanh):</span>
+              <span class="ict-row-val" id="ict-ema50" style="color:#2962ff">$82,276.47</span>
+            </div>
+            <div class="ict-row">
+              <span class="ict-row-label">EMA 200 (Dài hạn - Tím):</span>
+              <span class="ict-row-val" id="ict-ema200" style="color:#a855f7">$82,381.73</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONFLUENCE SUMMARY & RISK MANAGEMENT -->
+        <div style="background:rgba(0,0,0,0.3); border-radius:6px; padding:12px; border:1px solid rgba(255,255,255,0.06); margin-top:4px;">
+          <div style="font-size:0.8rem; font-weight:700; color:var(--accent-yellow); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            TỔNG HỢP HỘI TỤ TÍN HIỆU ĐẶT LỆNH:
+          </div>
+          <div style="font-size:0.78rem; color:var(--text-sub); line-height:1.5;" id="ict-confluence-summary">
+            Hội tụ 3 yếu tố: 1) Giá suy yếu dưới EMA50/EMA20, 2) Chạm vùng cản Bearish Order Block (Khối lệnh đè phe Bán) và Bearish FVG, 3) Động lượng Yếu (RSI &lt; 50 - Phe gấu kiểm soát).
+          </div>
+          <div style="font-size:0.75rem; color:var(--text-muted); line-height:1.45; margin-top:6px; border-top:1px dashed rgba(255,255,255,0.08); padding-top:6px;" id="ict-risk-rule">
+            Quy tắc quản trị vốn: Tối đa 2% - 3% tổng vốn cho 1 lệnh. Khi giá chạm mốc TP1, dời Stop Loss về vùng giá vào lệnh (Break-even Entry) để bảo toàn 100% vốn.
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- FUTURE PREDICTION SECTION -->
+    <section class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h5l3 5 4-10 3 5h5"></path></svg>
+          Dự Đoán Tương Lai Giá (Mô Hình Định Lượng & Nguồn Chính Thống)
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">
+          Mô hình: Hồi quy lũy thừa (Power Law Corridor) + Tổng hợp dự báo Wall Street
+        </div>
+      </div>
+
+      <!-- 4 PERIOD TARGETS -->
+      <div class="predictions-grid">
+        <div class="target-card highlight">
+          <div class="target-header">
+            <span class="target-period">MỤC TIÊU 30 NGÀY (NGẮN HẠN)</span>
+            <span class="target-conf" id="conf-30d">78% Tin cậy</span>
+          </div>
+          <div class="target-price" id="pred-30d-exp">$88,400.00</div>
+          <div class="target-range">
+            <span>Đáy biên: <b id="pred-30d-low">$76,590</b></span>
+            <span>Đỉnh biên: <b id="pred-30d-high">$93,700</b></span>
+          </div>
+        </div>
+
+        <div class="target-card highlight">
+          <div class="target-header">
+            <span class="target-period">MỤC TIÊU 90 NGÀY (TRUNG HẠN)</span>
+            <span class="target-conf" id="conf-90d">72% Tin cậy</span>
+          </div>
+          <div class="target-price" id="pred-90d-exp">$104,290.00</div>
+          <div class="target-range">
+            <span>Đáy biên: <b id="pred-90d-low">$71,700</b></span>
+            <span>Đỉnh biên: <b id="pred-90d-high">$118,140</b></span>
+          </div>
+        </div>
+
+        <div class="target-card">
+          <div class="target-header">
+            <span class="target-period">MỤC TIÊU 1 NĂM (DÀI HẠN)</span>
+            <span class="target-conf" id="conf-1y">65% Tin cậy</span>
+          </div>
+          <div class="target-price" id="pred-1y-exp">$134,440.00</div>
+          <div class="target-range">
+            <span>Đáy biên: <b id="pred-1y-low">$63,550</b></span>
+            <span>Đỉnh biên: <b id="pred-1y-high">$171,110</b></span>
+          </div>
+        </div>
+
+        <div class="target-card peak">
+          <div class="target-header">
+            <span class="target-period" style="color: #c084fc;">DỰ BÁO ĐỈNH CHU KỲ NÀY</span>
+            <span class="target-conf" id="conf-peak" style="color:#c084fc; background:rgba(192, 132, 252, 0.1);">Mô hình Halving</span>
+          </div>
+          <div class="target-price" id="pred-peak-exp" style="color:#f3e8ff;">$150,740.00</div>
+          <div class="target-range">
+            <span>Kỳ vọng thấp: <b id="pred-peak-low">$113,050</b></span>
+            <span>Siêu chu kỳ: <b id="pred-peak-high">$211,030</b></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- KEY LEVELS ROW -->
+      <div style="display:flex; justify-content:space-around; background:rgba(0,0,0,0.3); border-radius:var(--radius-sm); padding:10px 16px; font-size:0.8rem; border:1px solid var(--card-border); flex-wrap:wrap; gap:12px;">
+        <div>Hỗ trợ cứng 1: <strong id="supp-1" style="color:var(--green)">$74,148.00</strong></div>
+        <div>Hỗ trợ then chốt 2 (200W): <strong id="supp-2" style="color:var(--green)">$72,899.00</strong></div>
+        <div>Kháng cự gần 1: <strong id="res-1" style="color:var(--red)">$91,259.00</strong></div>
+        <div>Kháng cự mở rộng 2: <strong id="res-2" style="color:var(--red)">$107,686.00</strong></div>
+      </div>
+
+      <!-- SCENARIOS & INSTITUTIONAL SOURCES -->
+      <div class="split-layout">
+        <!-- 3 SCENARIOS -->
+        <div>
+          <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+            <span style="width:4px; height:16px; background:var(--blue); border-radius:2px;"></span>
+            3 Kịch Bản Biến Động Chu Kỳ
+          </h3>
+          <div id="scenarios-container">
+            <!-- Rendered by JS or default fallback -->
+            <div class="scenario-card bull">
+              <div class="scenario-top">
+                <span class="scenario-title">Kịch bản Lạc quan (Bullish Supercycle) (35% xác suất)</span>
+                <span class="scenario-price" style="color: var(--green)">$188,427.00 (+131.3%)</span>
+              </div>
+              <div class="scenario-detail"><strong>Điều kiện:</strong> Dòng vốn ETF mở rộng kỷ lục, Cục Dự trữ Liên bang Mỹ (Fed) cắt giảm lãi suất thúc đẩy M2 toàn cầu, áp lực bán của thợ đào cạn kiệt.</div>
+              <div class="scenario-detail" style="color: var(--text-muted);">Đồng coin bứt phá qua các ngưỡng cản lịch sử và đạt đỉnh chu kỳ tại mức Fibonacci mở rộng 1.618 - 2.618.</div>
+            </div>
+
+            <div class="scenario-card base">
+              <div class="scenario-top">
+                <span class="scenario-title">Kịch bản Cơ sở (Base Case - Chu kỳ Chuẩn) (50% xác suất)</span>
+                <span class="scenario-price" style="color: var(--accent-yellow)">$150,741.00 (+85.0%)</span>
+              </div>
+              <div class="scenario-detail"><strong>Điều kiện:</strong> Thị trường tuân theo mô hình chu kỳ 4 năm Halving truyền thống, tốc độ tăng trưởng ổn định tương quan với chỉ số thanh khoản vĩ mô.</div>
+              <div class="scenario-detail" style="color: var(--text-muted);">Giá đạt vùng cân bằng định giá theo mô hình Hồi quy Lũy thừa (Power Law Corridor) và Mayer Multiple chạm mức 2.0 - 2.4.</div>
+            </div>
+
+            <div class="scenario-card bear">
+              <div class="scenario-top">
+                <span class="scenario-title">Kịch bản Phòng vệ (Bearish Stress Case) (15% xác suất)</span>
+                <span class="scenario-price" style="color: var(--red)">$65,609.00 (-19.5%)</span>
+              </div>
+              <div class="scenario-detail"><strong>Điều kiện:</strong> Khủng hoảng kinh tế vĩ mô toàn cầu, dòng tiền rút ròng khỏi các sản phẩm ETP, biến cố địa chính trị hoặc siết chặt quy định pháp lý.</div>
+              <div class="scenario-detail" style="color: var(--text-muted);">Giá kiểm tra lại đường trung bình 200 tuần (200W SMA) - vùng đệm an toàn dài hạn của các chu kỳ trước.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- INSTITUTIONAL FORECASTS -->
+        <div>
+          <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+            <span style="width:4px; height:16px; background:var(--accent-yellow); border-radius:2px;"></span>
+            Dự Báo Từ Các Tổ Chức Tài Chính Chính Thống
+          </h3>
+          <div style="background:#0e121a; border-radius:var(--radius-md); border:1px solid var(--card-border); overflow-x:auto;">
+            <table class="source-table">
+              <thead>
+                <tr>
+                  <th>Tổ chức / Nguồn</th>
+                  <th>Mục tiêu giá</th>
+                  <th>Thời hạn</th>
+                  <th>Cơ sở & Luận điểm</th>
+                </tr>
+              </thead>
+              <tbody id="institutions-tbody">
+                <tr>
+                  <td><span class="source-badge">VanEck Research</span></td>
+                  <td><span class="source-target">$180,000</span></td>
+                  <td><span style="color: var(--text-sub);">Đỉnh chu kỳ 2025/2026</span></td>
+                  <td><div class="source-rationale">Dựa trên mô hình định giá tỷ lệ vốn hóa Bitcoin so với vàng (1/2 vốn hóa vàng tư nhân) và nhu cầu ngân khố doanh nghiệp.</div></td>
+                </tr>
+                <tr>
+                  <td><span class="source-badge">Standard Chartered</span></td>
+                  <td><span class="source-target">$200,000</span></td>
+                  <td><span style="color: var(--text-sub);">Cuối năm 2025</span></td>
+                  <td><div class="source-rationale">Dòng vốn ròng từ các quỹ Spot Bitcoin ETF duy trì tốc độ mở rộng trên 25 tỷ USD/năm.</div></td>
+                </tr>
+                <tr>
+                  <td><span class="source-badge">Bernstein</span></td>
+                  <td><span class="source-target">$200,000</span></td>
+                  <td><span style="color: var(--text-sub);">Q4 2025</span></td>
+                  <td><div class="source-rationale">Sự chấp nhận của các quỹ hưu trí quốc gia và sự tham gia của các cố vấn tài chính độc lập (RIA).</div></td>
+                </tr>
+                <tr>
+                  <td><span class="source-badge">Ark Invest (Cathie Wood)</span></td>
+                  <td><span class="source-target">$250,000</span></td>
+                  <td><span style="color: var(--text-sub);">Mô hình dài hạn 2026</span></td>
+                  <td><div class="source-rationale">Kịch bản cơ sở theo định luật Metcalfe về tăng trưởng mạng lưới người dùng và lưu trữ giá trị tổ chức.</div></td>
+                </tr>
+                <tr>
+                  <td><span class="source-badge">Binance Research</span></td>
+                  <td><span class="source-target">$150,000</span></td>
+                  <td><span style="color: var(--text-sub);">Chu kỳ Halving thứ 4</span></td>
+                  <td><div class="source-rationale">Hiệu ứng co hẹp cung thợ đào sau Halving kết hợp thanh khoản M2 toàn cầu hồi phục mạnh.</div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADVICE BOX -->
+      <div class="advice-banner">
+        <div class="advice-icon">💡</div>
+        <div class="advice-content">
+          <h4 id="advice-title">Chiến Lược Đầu Tư Khuyến Nghị Dựa Trên Chu Kỳ</h4>
+          <p id="advice-text">Khuyến nghị: Mua định kỳ trung bình giá (DCA) theo tuần/tháng. Giữ 70% danh mục ở vị thế dài hạn.</p>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    Dự án Theo Dõi Thông Tin Coin, Chu Kỳ Halving & Dự Đoán Giá Tương Lai qua API Chính Thống Binance & Alternative.me | Kiến trúc ASP.NET Core API + Angular
+  </footer>
+
+  <!-- SCRIPT -->
+  <script>
+    const API_BASE = window.location.origin.includes('localhost:5166') ? 'http://localhost:5166/api' : '/api';
+    let currentSymbol = 'BTCUSDT';
+    let currentInterval = '15m';
+    let currentLimit = 100;
+    let candleData = [];
+    let liveWs = null;
+    let lastHeroPrice = 0;
+    let activeCoinAth = 108900;
+    let currentIctSetup = null;
+
+    // --- REALTIME WEBSOCKET STREAMING ENGINE (BINANCE DIRECT) ---
+    function connectBinanceWebSocket(symbol, interval) {
+      if (liveWs) {
+        try { liveWs.close(); } catch(e) {}
+        liveWs = null;
+      }
+
+      const normSym = symbol.toLowerCase();
+      const statusEl = document.getElementById('ws-status-text');
+      if (statusEl) statusEl.innerText = 'ĐANG KẾT NỐI STREAM...';
+
+      const streamUrl = `wss://stream.binance.com:9443/stream?streams=${normSym}@ticker/${normSym}@kline_${interval}/!miniTicker@arr`;
+
+      try {
+        liveWs = new WebSocket(streamUrl);
+
+        liveWs.onopen = () => {
+          if (statusEl) {
+            statusEl.innerText = 'WEBSOCKET TRỰC TIẾP (0ms)';
+            statusEl.style.color = 'var(--green)';
+          }
+        };
+
+        liveWs.onmessage = (event) => {
+          try {
+            const payload = JSON.parse(event.data);
+            const stream = payload.stream;
+            const data = payload.data;
+
+            // 1. LIVE TICKER FOR SELECTED COIN
+            if (stream === `${normSym}@ticker`) {
+              const price = parseFloat(data.c);
+              const change = parseFloat(data.p);
+              const changePct = parseFloat(data.P);
+              const high = parseFloat(data.h);
+              const low = parseFloat(data.l);
+              const vol = parseFloat(data.v);
+
+              const priceEl = document.getElementById('hero-price');
+              if (lastHeroPrice > 0 && priceEl) {
+                priceEl.classList.remove('price-up-flash', 'price-down-flash');
+                void priceEl.offsetWidth; // trigger reflow
+                if (price > lastHeroPrice) {
+                  priceEl.classList.add('price-up-flash');
+                } else if (price < lastHeroPrice) {
+                  priceEl.classList.add('price-down-flash');
+                }
+              }
+              lastHeroPrice = price;
+              if (priceEl) priceEl.innerText = formatCurrency(price);
+
+              const changeEl = document.getElementById('hero-change');
+              if (changeEl) {
+                const isUp = changePct >= 0;
+                changeEl.className = `pct-badge ${isUp ? 'pct-up' : 'pct-down'}`;
+                changeEl.innerText = `${isUp ? '+' : ''}${changePct.toFixed(2)}% ($${change.toFixed(2)})`;
+              }
+
+              const highEl = document.getElementById('stat-high');
+              if (highEl) highEl.innerText = formatCurrency(high);
+              const lowEl = document.getElementById('stat-low');
+              if (lowEl) lowEl.innerText = formatCurrency(low);
+              const volEl = document.getElementById('stat-vol');
+              if (volEl) volEl.innerText = `${formatNumber(vol)} ${symbol.replace('USDT', '')}`;
+
+              if (activeCoinAth > 0) {
+                const dd = Math.max(0, ((activeCoinAth - price) / activeCoinAth) * 100);
+                const ddEl = document.getElementById('stat-drawdown');
+                if (ddEl) ddEl.innerText = `-${dd.toFixed(1)}%`;
+              }
+
+              // Update active tab price
+              const tab = document.getElementById(`tab-${symbol}`);
+              if (tab) {
+                const pEl = tab.querySelector('.coin-tab-price');
+                const bEl = tab.querySelector('.pct-badge');
+                if (pEl) pEl.innerText = formatCurrency(price);
+                if (bEl) {
+                  bEl.className = `pct-badge ${changePct >= 0 ? 'pct-up' : 'pct-down'}`;
+                  bEl.innerText = `${changePct >= 0 ? '+' : ''}${changePct.toFixed(2)}%`;
+                }
+              }
+            }
+
+            // 2. LIVE CANDLESTICK STREAM FOR CHART
+            else if (stream === `${normSym}@kline_${interval}`) {
+              const k = data.k;
+              const kTime = k.t;
+              const kOpen = parseFloat(k.o);
+              const kHigh = parseFloat(k.h);
+              const kLow = parseFloat(k.l);
+              const kClose = parseFloat(k.c);
+              const kVol = parseFloat(k.v);
+
+              if (candleData && candleData.length > 0) {
+                const last = candleData[candleData.length - 1];
+                if (last.time === kTime) {
+                  last.high = Math.max(last.high, kHigh);
+                  last.low = Math.min(last.low, kLow);
+                  last.close = kClose;
+                  last.volume = kVol;
+                } else if (kTime > last.time) {
+                  candleData.push({ time: kTime, open: kOpen, high: kHigh, low: kLow, close: kClose, volume: kVol });
+                  if (candleData.length > currentLimit) candleData.shift();
+                }
+                renderChart();
+              }
+            }
+
+            // 3. ALL COINS MINI-TICKER STREAM
+            else if (stream === '!miniTicker@arr') {
+              if (Array.isArray(data)) {
+                data.forEach(t => {
+                  const tab = document.getElementById(`tab-${t.s}`);
+                  if (tab && t.s !== symbol) { // active symbol handled by detailed ticker
+                    const p = parseFloat(t.c);
+                    const pEl = tab.querySelector('.coin-tab-price');
+                    if (pEl) pEl.innerText = formatCurrency(p);
+                  }
+                });
+              }
+            }
+          } catch(err) {
+            console.warn('WS message error:', err);
+          }
+        };
+
+        liveWs.onerror = (err) => {
+          console.warn('WebSocket error, will reconnect...', err);
+          if (statusEl) {
+            statusEl.innerText = 'LỖI KẾT NỐI - ĐANG THỬ LẠI...';
+            statusEl.style.color = 'var(--red)';
+          }
+        };
+
+        liveWs.onclose = () => {
+          if (statusEl) {
+            statusEl.innerText = 'MẤT KẾT NỐI - KẾT NỐI LẠI TRONG 2S...';
+            statusEl.style.color = 'var(--accent-yellow)';
+          }
+          setTimeout(() => {
+            connectBinanceWebSocket(currentSymbol, currentInterval);
+          }, 2500);
+        };
+
+      } catch (e) {
+        console.error('Cannot create WebSocket:', e);
+      }
+    }
+
+    // Live clock update
+    function startLiveClock() {
+      const clockEl = document.getElementById('live-clock');
+      setInterval(() => {
+        const now = new Date();
+        if (clockEl) {
+          clockEl.innerText = now.toLocaleTimeString('vi-VN');
+        }
+      }, 1000);
+    }
+
+    // --- CANVAS-BASED INTERACTIVE CANDLESTICK CHART ENGINE ---
+    const canvas = document.getElementById('chart-canvas');
+    const ctx = canvas.getContext('2d');
+    const tooltip = document.getElementById('chart-tooltip');
+    let hoveredIndex = -1;
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      renderChart();
+    }
+
+    // Panning, Dragging & Zooming State
+    let isDragging = false;
+    let startMouseX = 0;
+    let startMouseY = 0;
+    let panCandleOffset = 0; // Horizontal shift (Trái / Phải)
+    let panPriceOffsetInPixels = 0; // Vertical shift (Trên / Dưới)
+    let zoomScale = 1.0;
+    let isUserPanned = false;
+
+    function renderChart() {
+      const rect = canvas.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+
+      ctx.clearRect(0, 0, width, height);
+
+      if (!candleData || candleData.length === 0) {
+        ctx.fillStyle = '#848e9c';
+        ctx.font = '14px Plus Jakarta Sans';
+        ctx.textAlign = 'center';
+        ctx.fillText('Đang tải dữ liệu biểu đồ...', width / 2, height / 2);
+        return;
+      }
+
+      const paddingLeft = 10;
+      const paddingRight = 85;
+      const paddingTop = 30;
+      const paddingBottom = 40;
+      const chartWidth = width - paddingLeft - paddingRight;
+      const chartHeight = height - paddingTop - paddingBottom;
+
+      // Calculate visible candle window based on zoomScale and panCandleOffset
+      const totalCandles = candleData.length;
+      const baseCount = Math.min(totalCandles, currentLimit || 100);
+      const viewCount = Math.max(12, Math.min(totalCandles, Math.round(baseCount / zoomScale)));
+      const maxOffset = Math.max(0, totalCandles - viewCount);
+      panCandleOffset = Math.max(0, Math.min(maxOffset, panCandleOffset));
+
+      const endIndex = Math.round(totalCandles - panCandleOffset);
+      const startIndex = Math.max(0, endIndex - viewCount);
+      const visibleCandles = candleData.slice(startIndex, endIndex);
+
+      if (visibleCandles.length === 0) return;
+
+      // Find min and max price within the VISIBLE candles
+      let minPrice = Infinity;
+      let maxPrice = -Infinity;
+      let maxVol = 0;
+
+      visibleCandles.forEach(c => {
+        if (c.low < minPrice) minPrice = c.low;
+        if (c.high > maxPrice) maxPrice = c.high;
+        if (c.volume > maxVol) maxVol = c.volume;
+      });
+
+      // Add 4% margin
+      const rawRange = Math.max(0.0001, maxPrice - minPrice);
+      minPrice = Math.max(0, minPrice - rawRange * 0.04);
+      maxPrice = maxPrice + rawRange * 0.04;
+      const fullRange = maxPrice - minPrice;
+
+      // Apply Vertical Panning offset (Trên / Dưới)
+      const pricePerPixel = fullRange / chartHeight;
+      const priceShift = panPriceOffsetInPixels * pricePerPixel;
+      minPrice += priceShift;
+      maxPrice += priceShift;
+
+      const priceToY = (price) => paddingTop + (1 - (price - minPrice) / (maxPrice - minPrice)) * chartHeight;
+
+      // Update Reset Button in Header
+      const resetBtn = document.getElementById('btn-reset-chart');
+      if (resetBtn) {
+        resetBtn.style.display = (panCandleOffset > 0.5 || Math.abs(panPriceOffsetInPixels) > 2 || Math.abs(zoomScale - 1) > 0.05) ? 'inline-flex' : 'none';
+      }
+
+      // Draw Grid Lines & Price Labels
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.fillStyle = '#848e9c';
+      ctx.font = '11px JetBrains Mono';
+      ctx.textAlign = 'left';
+      ctx.lineWidth = 1;
+
+      const gridSteps = 5;
+      for (let i = 0; i <= gridSteps; i++) {
+        const y = paddingTop + (chartHeight / gridSteps) * i;
+        const p = maxPrice - ((maxPrice - minPrice) / gridSteps) * i;
+
+        ctx.beginPath();
+        ctx.moveTo(paddingLeft, y);
+        ctx.lineTo(width - paddingRight, y);
+        ctx.stroke();
+
+        ctx.fillText(formatPriceLabel(p), width - paddingRight + 8, y + 4);
+      }
+
+      // Draw Visible Candles & Volume
+      const n = visibleCandles.length;
+      const slotWidth = chartWidth / n;
+      const candleWidth = Math.max(2, slotWidth * 0.65);
+
+      visibleCandles.forEach((c, i) => {
+        const x = paddingLeft + i * slotWidth + slotWidth / 2;
+        const openY = priceToY(c.open);
+        const closeY = priceToY(c.close);
+        const highY = priceToY(c.high);
+        const lowY = priceToY(c.low);
+
+        const isUp = c.close >= c.open;
+        const color = isUp ? '#0ecb81' : '#f6465d';
+
+        // Draw Volume Bar at bottom (20% height max)
+        const volHeight = maxVol > 0 ? (c.volume / maxVol) * (chartHeight * 0.20) : 0;
+        const volY = height - paddingBottom - volHeight;
+        ctx.fillStyle = isUp ? 'rgba(14, 203, 129, 0.2)' : 'rgba(246, 70, 93, 0.2)';
+        ctx.fillRect(x - candleWidth / 2, volY, candleWidth, volHeight);
+
+        // Draw Wick
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(x, highY);
+        ctx.lineTo(x, lowY);
+        ctx.stroke();
+
+        // Draw Body
+        ctx.fillStyle = color;
+        const bodyTop = Math.min(openY, closeY);
+        const bodyHeight = Math.max(1.5, Math.abs(closeY - openY));
+        ctx.fillRect(x - candleWidth / 2, bodyTop, candleWidth, bodyHeight);
+      });
+
+      // Calculate and Draw EMA Ribbon across whole dataset, slice visible
+      drawEMA(20, '#f0b90b', 1.6, paddingLeft, slotWidth, priceToY, startIndex, n);
+      drawEMA(50, '#2962ff', 1.8, paddingLeft, slotWidth, priceToY, startIndex, n);
+      drawEMA(200, '#a855f7', 2.2, paddingLeft, slotWidth, priceToY, startIndex, n);
+
+      // ICT Overlays: Order Block (OB), Fair Value Gap (FVG), and Trade Setup Levels
+      if (currentIctSetup) {
+        // 1. Order Block (OB)
+        if (currentIctSetup.orderBlockHigh > 0 && currentIctSetup.orderBlockLow > 0) {
+          const obTop = priceToY(Math.max(currentIctSetup.orderBlockHigh, currentIctSetup.orderBlockLow));
+          const obBot = priceToY(Math.min(currentIctSetup.orderBlockHigh, currentIctSetup.orderBlockLow));
+          const obHeight = Math.max(3, obBot - obTop);
+          const isBull = (currentIctSetup.orderBlockType || '').includes('Bullish');
+          
+          ctx.fillStyle = isBull ? 'rgba(14, 203, 129, 0.12)' : 'rgba(246, 70, 93, 0.12)';
+          ctx.strokeStyle = isBull ? 'rgba(14, 203, 129, 0.55)' : 'rgba(246, 70, 93, 0.55)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 3]);
+          ctx.fillRect(paddingLeft, obTop, chartWidth, obHeight);
+          ctx.strokeRect(paddingLeft, obTop, chartWidth, obHeight);
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = isBull ? '#0ecb81' : '#f6465d';
+          ctx.font = 'bold 10px JetBrains Mono';
+          ctx.fillText(`OB (${isBull ? 'Bullish' : 'Bearish'}): ${formatPriceLabel(currentIctSetup.orderBlockLow)} - ${formatPriceLabel(currentIctSetup.orderBlockHigh)}`, paddingLeft + 12, obTop + 13);
+        }
+
+        // 2. Fair Value Gap (FVG)
+        if (currentIctSetup.fvgHigh > 0 && currentIctSetup.fvgLow > 0 && Math.abs(currentIctSetup.fvgHigh - currentIctSetup.fvgLow) > 0.001) {
+          const fvgTop = priceToY(Math.max(currentIctSetup.fvgHigh, currentIctSetup.fvgLow));
+          const fvgBot = priceToY(Math.min(currentIctSetup.fvgHigh, currentIctSetup.fvgLow));
+          const fvgHeight = Math.max(3, fvgBot - fvgTop);
+
+          ctx.fillStyle = 'rgba(240, 185, 11, 0.10)';
+          ctx.strokeStyle = 'rgba(240, 185, 11, 0.5)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([5, 2]);
+          ctx.fillRect(paddingLeft, fvgTop, chartWidth, fvgHeight);
+          ctx.strokeRect(paddingLeft, fvgTop, chartWidth, fvgHeight);
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = '#f0b90b';
+          ctx.font = 'bold 10px JetBrains Mono';
+          ctx.fillText(`FVG Gap: ${formatPriceLabel(currentIctSetup.fvgLow)} - ${formatPriceLabel(currentIctSetup.fvgHigh)}`, paddingLeft + 12, fvgTop + 13);
+        }
+
+        // 3. Trade Setup Levels (Entry, SL, TP1, TP2) - CHỈ KÍCH HOẠT VẼ KHI ĐẠT CHUẨN > 70%
+        if (currentIctSetup.optimalEntry > 0 && currentIctSetup.confidenceScore > 70) {
+          const entryY = priceToY(currentIctSetup.optimalEntry);
+          drawTradeLevelLine(ctx, entryY, '#00e5ff', `ENTRY: ${formatCurrency(currentIctSetup.optimalEntry)}`, paddingLeft, width - paddingRight);
+
+          if (currentIctSetup.stopLoss > 0) {
+            const slY = priceToY(currentIctSetup.stopLoss);
+            drawTradeLevelLine(ctx, slY, '#f6465d', `SL: ${formatCurrency(currentIctSetup.stopLoss)}`, paddingLeft, width - paddingRight);
+          }
+
+          if (currentIctSetup.takeProfit1 > 0) {
+            const tp1Y = priceToY(currentIctSetup.takeProfit1);
+            drawTradeLevelLine(ctx, tp1Y, '#0ecb81', `TP1: ${formatCurrency(currentIctSetup.takeProfit1)}`, paddingLeft, width - paddingRight);
+          }
+
+          if (currentIctSetup.takeProfit2 > 0) {
+            const tp2Y = priceToY(currentIctSetup.takeProfit2);
+            drawTradeLevelLine(ctx, tp2Y, '#0ecb81', `TP2: ${formatCurrency(currentIctSetup.takeProfit2)}`, paddingLeft, width - paddingRight);
+          }
+        } else if (currentIctSetup && currentIctSetup.confidenceScore <= 70) {
+          ctx.save();
+          ctx.fillStyle = 'rgba(240, 185, 11, 0.85)';
+          ctx.font = 'bold 10px JetBrains Mono';
+          ctx.textAlign = 'right';
+          ctx.fillText(`[ĐỘ HỘI TỤ ${currentIctSetup.confidenceScore}% < 70% • CHỜ TÍN HIỆU ĐỦ ĐIỀU KIỆN]`, width - paddingRight - 10, paddingTop + 20);
+          ctx.restore();
+        }
+      }
+
+      // Draw Time Axis Labels
+      ctx.fillStyle = '#848e9c';
+      ctx.font = '10px JetBrains Mono';
+      ctx.textAlign = 'center';
+      const labelInterval = Math.max(1, Math.floor(n / 6));
+
+      for (let i = 0; i < n; i += labelInterval) {
+        const x = paddingLeft + i * slotWidth + slotWidth / 2;
+        const dateStr = formatDateLabel(visibleCandles[i].time);
+        ctx.fillText(dateStr, x, height - 12);
+      }
+
+      // Draw Crosshair if hovered
+      if (hoveredIndex >= 0 && hoveredIndex < n && !isDragging) {
+        const hCandle = visibleCandles[hoveredIndex];
+        const hX = paddingLeft + hoveredIndex * slotWidth + slotWidth / 2;
+        const hY = priceToY(hCandle.close);
+
+        ctx.strokeStyle = 'rgba(240, 185, 11, 0.5)';
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 1;
+
+        // Vert
+        ctx.beginPath();
+        ctx.moveTo(hX, paddingTop);
+        ctx.lineTo(hX, height - paddingBottom);
+        ctx.stroke();
+
+        // Horz
+        ctx.beginPath();
+        ctx.moveTo(paddingLeft, hY);
+        ctx.lineTo(width - paddingRight, hY);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+      }
+    }
+
+    function drawEMA(period, color, strokeWidth, paddingLeft, slotWidth, priceToY, startIndex, visibleCount) {
+      if (!candleData || candleData.length < period) return;
+      const k = 2 / (period + 1);
+      
+      const emaVals = new Array(candleData.length);
+      let ema = 0;
+      for (let i = 0; i < period; i++) {
+        ema += candleData[i].close;
+      }
+      ema /= period;
+      emaVals[period - 1] = ema;
+
+      for (let i = period; i < candleData.length; i++) {
+        ema = candleData[i].close * k + ema * (1 - k);
+        emaVals[i] = ema;
+      }
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = strokeWidth;
+      ctx.beginPath();
+      let started = false;
+
+      for (let i = 0; i < visibleCount; i++) {
+        const fullIdx = (startIndex || 0) + i;
+        if (fullIdx >= period - 1 && emaVals[fullIdx] !== undefined) {
+          const x = paddingLeft + i * slotWidth + slotWidth / 2;
+          const y = priceToY(emaVals[fullIdx]);
+          if (!started) {
+            ctx.moveTo(x, y);
+            started = true;
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawTradeLevelLine(ctx, y, color, label, xStart, xEnd) {
+      if (isNaN(y) || y < 5 || y > 5000) return;
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.3;
+      ctx.setLineDash([5, 3]);
+      ctx.beginPath();
+      ctx.moveTo(xStart, y);
+      ctx.lineTo(xEnd, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = color;
+      ctx.font = 'bold 10px JetBrains Mono';
+      ctx.textAlign = 'right';
+      ctx.fillText(label, xEnd - 6, y - 4);
+      ctx.restore();
+    }
+
+    function formatPriceLabel(p) {
+      if (p >= 1000) return '$' + Math.round(p).toLocaleString();
+      if (p >= 1) return '$' + p.toFixed(2);
+      return '$' + p.toFixed(4);
+    }
+
+    function formatDateLabel(timestamp) {
+      const date = new Date(timestamp);
+      return (date.getMonth() + 1) + '/' + date.getDate() + ' ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
+    }
+
+    // --- MOUSE & TOUCH INTERACTIVE DRAGGING / PANNING (TRÊN / DƯỚI / TRÁI / PHẢI) ---
+    canvas.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      startMouseX = e.clientX;
+      startMouseY = e.clientY;
+      canvas.style.cursor = 'grabbing';
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        canvas.style.cursor = 'grab';
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        const dx = e.clientX - startMouseX;
+        const dy = e.clientY - startMouseY;
+        startMouseX = e.clientX;
+        startMouseY = e.clientY;
+
+        isUserPanned = true;
+
+        const rect = canvas.getBoundingClientRect();
+        const chartWidth = rect.width - 10 - 85;
+        const baseCount = Math.min(candleData.length, currentLimit || 100);
+        const viewCount = Math.max(12, Math.min(candleData.length, Math.round(baseCount / zoomScale)));
+        const slotWidth = chartWidth / viewCount;
+
+        // Kéo Trái / Phải: dx > 0 kéo chuột sang phải -> dịch chuyển lùi về quá khứ (xem nến cũ)
+        panCandleOffset += (dx / slotWidth);
+        const maxOffset = Math.max(0, candleData.length - viewCount);
+        panCandleOffset = Math.max(0, Math.min(maxOffset, panCandleOffset));
+
+        // Kéo Trên / Dưới: dy > 0 kéo chuột xuống -> dịch chuyển giá đi xuống
+        panPriceOffsetInPixels += dy;
+
+        renderChart();
+      } else {
+        // Xử lý di chuột xem Tooltip khi không kéo
+        const rect = canvas.getBoundingClientRect();
+        if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+          handleCanvasHover(e, rect);
+        }
+      }
+    });
+
+    function handleCanvasHover(e, rect) {
+      if (!candleData || candleData.length === 0) return;
+      const mouseX = e.clientX - rect.left;
+      const paddingLeft = 10;
+      const paddingRight = 85;
+      const chartWidth = rect.width - paddingLeft - paddingRight;
+
+      const totalCandles = candleData.length;
+      const baseCount = Math.min(totalCandles, currentLimit || 100);
+      const viewCount = Math.max(12, Math.min(totalCandles, Math.round(baseCount / zoomScale)));
+      const slotWidth = chartWidth / viewCount;
+
+      const maxOffset = Math.max(0, totalCandles - viewCount);
+      const clampedOffset = Math.max(0, Math.min(maxOffset, panCandleOffset));
+      const endIndex = Math.round(totalCandles - clampedOffset);
+      const startIndex = Math.max(0, endIndex - viewCount);
+      const visibleCandles = candleData.slice(startIndex, endIndex);
+
+      const idx = Math.floor((mouseX - paddingLeft) / slotWidth);
+      if (idx >= 0 && idx < visibleCandles.length) {
+        hoveredIndex = idx;
+        const c = visibleCandles[idx];
+        const oEl = document.getElementById('tt-o');
+        const hEl = document.getElementById('tt-h');
+        const lEl = document.getElementById('tt-l');
+        const cEl = document.getElementById('tt-c');
+        const dEl = document.getElementById('tt-d');
+        if (oEl) oEl.innerText = formatCurrency(c.open);
+        if (hEl) hEl.innerText = formatCurrency(c.high);
+        if (lEl) lEl.innerText = formatCurrency(c.low);
+        if (cEl) cEl.innerText = formatCurrency(c.close);
+        if (dEl) dEl.innerText = new Date(c.time).toLocaleDateString('vi-VN') + ' ' + new Date(c.time).toLocaleTimeString('vi-VN');
+        renderChart();
+      }
+    }
+
+    canvas.addEventListener('mouseleave', () => {
+      if (!isDragging) {
+        hoveredIndex = -1;
+        renderChart();
+      }
+    });
+
+    // Lăn chuột phóng to / thu nhỏ (Zoom In / Zoom Out)
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
+      zoomScale = Math.max(0.25, Math.min(4.0, zoomScale * zoomFactor));
+      isUserPanned = true;
+      renderChart();
+    }, { passive: false });
+
+    // Nhấp đúp chuột để đặt lại góc nhìn mặc định
+    canvas.addEventListener('dblclick', () => {
+      resetChartView();
+    });
+
+    // Touch support cho điện thoại / máy tính bảng
+    let touchStartX = 0;
+    let touchStartY = 0;
+    canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        isDragging = true;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (isDragging && e.touches.length === 1) {
+        const dx = e.touches[0].clientX - touchStartX;
+        const dy = e.touches[0].clientY - touchStartY;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+
+        isUserPanned = true;
+        const rect = canvas.getBoundingClientRect();
+        const chartWidth = rect.width - 10 - 85;
+        const baseCount = Math.min(candleData.length, currentLimit || 100);
+        const viewCount = Math.max(12, Math.min(candleData.length, Math.round(baseCount / zoomScale)));
+        const slotWidth = chartWidth / viewCount;
+
+        panCandleOffset += (dx / slotWidth);
+        const maxOffset = Math.max(0, candleData.length - viewCount);
+        panCandleOffset = Math.max(0, Math.min(maxOffset, panCandleOffset));
+        panPriceOffsetInPixels += dy;
+
+        renderChart();
+      }
+    }, { passive: true });
+
+    canvas.addEventListener('touchend', () => {
+      isDragging = false;
+    });
+
+    function resetChartView() {
+      panCandleOffset = 0;
+      panPriceOffsetInPixels = 0;
+      zoomScale = 1.0;
+      isUserPanned = false;
+      renderChart();
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    // Format currency
+    function formatCurrency(val) {
+      if (val === undefined || val === null) return '$0.00';
+      const num = Number(val);
+      if (num >= 1000) {
+        return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      } else if (num >= 1) {
+        return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+      } else {
+        return '$' + num.toFixed(6);
+      }
+    }
+
+    function formatNumber(val) {
+      if (!val) return '0';
+      const num = Number(val);
+      if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+      if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+      if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+      return num.toFixed(2);
+    }
+
+    // Load top coins list
+    async function loadCoins() {
+      try {
+        const res = await fetch(`${API_BASE}/coins`);
+        if (!res.ok) throw new Error('API coins error');
+        const coins = await res.json();
+        const bar = document.getElementById('coin-bar');
+        bar.innerHTML = '';
+
+        coins.forEach(c => {
+          const tab = document.createElement('div');
+          tab.className = `coin-tab ${c.symbol === currentSymbol ? 'active' : ''}`;
+          tab.id = `tab-${c.symbol}`;
+
+          const isUp = c.priceChangePercent24h >= 0;
+          const sign = isUp ? '+' : '';
+
+          tab.innerHTML = `
+            <img src="${c.iconUrl}" alt="${c.baseAsset}" onerror="this.src='https://assets.coingecko.com/coins/images/1/large/bitcoin.png'">
+            <div>
+              <div class="coin-tab-symbol">${c.baseAsset}</div>
+              <div class="coin-tab-price">${formatCurrency(c.price)}</div>
+            </div>
+            <span class="pct-badge ${isUp ? 'pct-up' : 'pct-down'}">${sign}${c.priceChangePercent24h.toFixed(2)}%</span>
+          `;
+
+          tab.onclick = () => selectCoin(c.symbol);
+          bar.appendChild(tab);
+        });
+
+        const active = coins.find(c => c.symbol === currentSymbol);
+        if (active) updateHero(active);
+      } catch (err) {
+        console.warn('Fallback coins load:', err);
+      }
+    }
+
+    function updateHero(coin) {
+      activeCoinAth = coin.athPrice || 108900;
+      lastHeroPrice = coin.price;
+      document.getElementById('hero-icon').src = coin.iconUrl;
+      document.getElementById('hero-name').innerHTML = `${coin.name} <span class="hero-symbol-badge">${coin.baseAsset}/USDT</span>`;
+      document.getElementById('hero-category').innerText = coin.category || 'Layer 1';
+      document.getElementById('hero-price').innerText = formatCurrency(coin.price);
+
+      const isUp = coin.priceChangePercent24h >= 0;
+      const changeEl = document.getElementById('hero-change');
+      changeEl.className = `pct-badge ${isUp ? 'pct-up' : 'pct-down'}`;
+      changeEl.innerText = `${isUp ? '+' : ''}${coin.priceChangePercent24h.toFixed(2)}% ($${Number(coin.priceChange24h).toFixed(2)})`;
+
+      document.getElementById('stat-high').innerText = formatCurrency(coin.high24h);
+      document.getElementById('stat-low').innerText = formatCurrency(coin.low24h);
+      document.getElementById('stat-vol').innerText = `${formatNumber(coin.volume24h)} ${coin.baseAsset}`;
+      document.getElementById('stat-ath').innerText = formatCurrency(coin.athPrice);
+      document.getElementById('stat-drawdown').innerText = `-${coin.athDrawdownPercent.toFixed(1)}%`;
+    }
+
+    // Load Chart Candlesticks
+    async function loadChartData() {
+      try {
+        const res = await fetch(`${API_BASE}/market/klines?symbol=${currentSymbol}&interval=${currentInterval}&limit=${currentLimit}`);
+        if (!res.ok) throw new Error('API klines error');
+        const klines = await res.json();
+
+        candleData = klines.map(c => ({
+          time: c.time,
+          open: Number(c.open),
+          high: Number(c.high),
+          low: Number(c.low),
+          close: Number(c.close),
+          volume: Number(c.volume)
+        }));
+
+        renderChart();
+      } catch (err) {
+        console.warn('Using local candlestick generation for chart:', err);
+        generateFallbackCandles();
+        renderChart();
+      }
+    }
+
+    function generateFallbackCandles() {
+      candleData = [];
+      let price = currentSymbol === 'BTCUSDT' ? 81500 : 2500;
+      const now = Date.now();
+      const dayMs = 86400000;
+
+      for (let i = 100; i >= 0; i--) {
+        const t = now - i * dayMs;
+        const change = (Math.random() - 0.48) * (price * 0.04);
+        const open = price;
+        const close = Math.max(1, price + change);
+        const high = Math.max(open, close) + Math.random() * (price * 0.015);
+        const low = Math.min(open, close) - Math.random() * (price * 0.015);
+        const volume = Math.random() * 50000 + 10000;
+        candleData.push({ time: t, open, high, low, close, volume });
+        price = close;
+      }
+    }
+
+    // Load Cycle Analysis
+    async function loadCycleData() {
+      try {
+        const res = await fetch(`${API_BASE}/cycle/${currentSymbol}`);
+        if (!res.ok) throw new Error('API cycle error');
+        const cycle = await res.json();
+
+        document.getElementById('cycle-stage-name').innerText = cycle.currentStage;
+        document.getElementById('cycle-stage-desc').innerText = cycle.stageDescription;
+        document.getElementById('cycle-progress-pct').innerText = `${cycle.cycleProgressPercent}%`;
+        document.getElementById('cycle-progress-fill').style.width = `${cycle.cycleProgressPercent}%`;
+        document.getElementById('days-since-halving').innerText = `Đã qua: ${cycle.daysSinceHalving} ngày`;
+        document.getElementById('days-to-halving').innerText = `Còn lại: ${cycle.daysToNextHalving} ngày tới Halving tiếp theo (~${cycle.nextHalvingDate})`;
+
+        document.getElementById('mayer-multiple').innerText = cycle.mayerMultiple.toFixed(2);
+        document.getElementById('rsi-val').innerText = cycle.rsi14.toFixed(1);
+        document.getElementById('sma-200').innerText = formatCurrency(cycle.sma200);
+        document.getElementById('sma-distance').innerText = `Cách biệt: ${cycle.distanceTo200SmaPercent >= 0 ? '+' : ''}${cycle.distanceTo200SmaPercent}%`;
+        document.getElementById('pi-cycle-status').innerText = cycle.piCycleStatus;
+
+        const riskBadge = document.getElementById('risk-badge');
+        riskBadge.innerText = `Rủi ro: ${cycle.riskScore}/10 (${cycle.riskLevel})`;
+        document.getElementById('hist-comp').innerText = cycle.historicalComparison;
+      } catch (err) {
+        console.warn('Error loadCycleData:', err);
+      }
+    }
+
+    // Load Predictions
+    async function loadPredictionData() {
+      try {
+        const res = await fetch(`${API_BASE}/prediction/${currentSymbol}`);
+        if (!res.ok) throw new Error('API prediction error');
+        const pred = await res.json();
+
+        document.getElementById('pred-30d-exp').innerText = formatCurrency(pred.shortTerm30d.expected);
+        document.getElementById('pred-30d-low').innerText = formatCurrency(pred.shortTerm30d.low);
+        document.getElementById('pred-30d-high').innerText = formatCurrency(pred.shortTerm30d.high);
+        document.getElementById('conf-30d').innerText = `${pred.shortTerm30d.confidencePercent}% Tin cậy`;
+
+        document.getElementById('pred-90d-exp').innerText = formatCurrency(pred.midTerm90d.expected);
+        document.getElementById('pred-90d-low').innerText = formatCurrency(pred.midTerm90d.low);
+        document.getElementById('pred-90d-high').innerText = formatCurrency(pred.midTerm90d.high);
+        document.getElementById('conf-90d').innerText = `${pred.midTerm90d.confidencePercent}% Tin cậy`;
+
+        document.getElementById('pred-1y-exp').innerText = formatCurrency(pred.oneYearTarget.expected);
+        document.getElementById('pred-1y-low').innerText = formatCurrency(pred.oneYearTarget.low);
+        document.getElementById('pred-1y-high').innerText = formatCurrency(pred.oneYearTarget.high);
+        document.getElementById('conf-1y').innerText = `${pred.oneYearTarget.confidencePercent}% Tin cậy`;
+
+        document.getElementById('pred-peak-exp').innerText = formatCurrency(pred.cyclePeakTarget.expected);
+        document.getElementById('pred-peak-low').innerText = formatCurrency(pred.cyclePeakTarget.low);
+        document.getElementById('pred-peak-high').innerText = formatCurrency(pred.cyclePeakTarget.high);
+
+        document.getElementById('supp-1').innerText = formatCurrency(pred.support1);
+        document.getElementById('supp-2').innerText = formatCurrency(pred.support2);
+        document.getElementById('res-1').innerText = formatCurrency(pred.resistance1);
+        document.getElementById('res-2').innerText = formatCurrency(pred.resistance2);
+
+        // Scenarios
+        const scenContainer = document.getElementById('scenarios-container');
+        scenContainer.innerHTML = '';
+        pred.scenarios.forEach((s, idx) => {
+          const typeClass = idx === 0 ? 'bull' : (idx === 1 ? 'base' : 'bear');
+          const isUp = s.percentChange >= 0;
+          const card = document.createElement('div');
+          card.className = `scenario-card ${typeClass}`;
+          card.innerHTML = `
+            <div class="scenario-top">
+              <span class="scenario-title">${s.name} (${s.probabilityPercent}% xác suất)</span>
+              <span class="scenario-price" style="color: ${isUp ? 'var(--green)' : 'var(--red)'}">
+                ${formatCurrency(s.targetPrice)} (${isUp ? '+' : ''}${s.percentChange}%)
+              </span>
+            </div>
+            <div class="scenario-detail"><strong>Điều kiện:</strong> ${s.triggerCondition}</div>
+            <div class="scenario-detail" style="color: var(--text-muted);">${s.description}</div>
+          `;
+          scenContainer.appendChild(card);
+        });
+
+        // Institutional Forecasts
+        const instTbody = document.getElementById('institutions-tbody');
+        instTbody.innerHTML = '';
+        pred.institutionalForecasts.forEach(f => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><span class="source-badge">${f.source}</span></td>
+            <td><span class="source-target">${formatCurrency(f.targetPrice)}</span></td>
+            <td><span style="color: var(--text-sub);">${f.timeframe}</span></td>
+            <td><div class="source-rationale">${f.rationale}</div></td>
+          `;
+          instTbody.appendChild(tr);
+        });
+
+        document.getElementById('advice-title').innerText = pred.overallSentiment;
+        document.getElementById('advice-text').innerText = pred.strategicAdvice;
+      } catch (err) {
+        console.warn('Error loadPredictionData:', err);
+      }
+    }
+
+    // Load Sentiment
+    async function loadSentiment() {
+      try {
+        const res = await fetch(`${API_BASE}/sentiment`);
+        if (!res.ok) throw new Error('API sentiment error');
+        const sent = await res.json();
+        document.getElementById('fng-val').innerText = `${sent.fearGreedIndex}/100`;
+        document.getElementById('fng-label').innerText = `(${sent.classificationVietnamese})`;
+
+        const gauge = document.getElementById('fng-gauge');
+        if (sent.fearGreedIndex >= 70) {
+          gauge.style.background = '#0ecb81';
+        } else if (sent.fearGreedIndex >= 50) {
+          gauge.style.background = '#f0b90b';
+        } else {
+          gauge.style.background = '#f6465d';
+        }
+      } catch (err) {
+        console.warn('Error loadSentiment:', err);
+      }
+    }
+
+    // Load Futures (FT) Data
+    async function loadFuturesData() {
+      try {
+        const res = await fetch(`${API_BASE}/futures/${currentSymbol}?interval=${currentInterval}`);
+        if (!res.ok) throw new Error('API futures error');
+        const ft = await res.json();
+
+        // Top info
+        document.getElementById('ft-next-funding').innerText = `Kỳ Funding kế tiếp: ${ft.nextFundingTime}`;
+        
+        const frSign = ft.fundingRatePercent >= 0 ? '+' : '';
+        const frEl = document.getElementById('ft-funding-val');
+        frEl.innerText = `${frSign}${ft.fundingRatePercent}%`;
+        frEl.style.color = ft.fundingRatePercent >= 0 ? 'var(--green)' : 'var(--red)';
+
+        const badgeEl = document.getElementById('ft-funding-badge');
+        badgeEl.className = `pct-badge ${ft.fundingRatePercent >= 0 ? 'pct-up' : 'pct-down'}`;
+        badgeEl.innerText = `${frSign}${ft.fundingRatePercent}% (8h)`;
+
+        document.getElementById('ft-funding-apr').innerText = `~${ft.annualizedFundingRate}% APR`;
+        document.getElementById('ft-funding-note').innerText = ft.fundingSentiment;
+
+        // Long / Short
+        document.getElementById('ft-ls-ratio').innerText = ft.longShortRatio;
+        document.getElementById('ft-long-pct').innerText = `${ft.longAccountPercent}%`;
+        document.getElementById('ft-short-pct').innerText = `${ft.shortAccountPercent}%`;
+        document.getElementById('ft-ls-long-bar').style.width = `${ft.longAccountPercent}%`;
+        document.getElementById('ft-ls-short-bar').style.width = `${ft.shortAccountPercent}%`;
+        document.getElementById('ft-ls-desc').innerText = ft.longShortSentiment;
+
+        // Open Interest
+        document.getElementById('ft-oi-usd').innerText = formatCompactUsd(ft.openInterestUsd);
+        document.getElementById('ft-oi-coin').innerText = `${formatNumber(ft.openInterestCoin)} ${currentSymbol.replace('USDT', '')}`;
+        document.getElementById('ft-oi-desc').innerText = ft.openInterestInterpretation;
+
+        // Mark & Index
+        document.getElementById('ft-mark-price').innerText = formatCurrency(ft.markPrice);
+        document.getElementById('ft-index-price').innerText = formatCurrency(ft.indexPrice);
+        const basisSign = ft.priceBasis >= 0 ? '+' : '';
+        document.getElementById('ft-basis-val').innerText = `${basisSign}${formatCurrency(ft.priceBasis)}`;
+
+        // Liquidation Pools
+        document.getElementById('ft-liq-long').innerText = formatCurrency(ft.longLiquidationCluster);
+        document.getElementById('ft-liq-short').innerText = formatCurrency(ft.shortLiquidationCluster);
+        document.getElementById('ft-liq-summary').innerText = ft.liquidationMapSummary;
+
+        // MULTI-TIMEFRAME DAILY BIAS BINDING (D1 TỔNG - H4 TRUNG HẠN - M15 VÀO LỆNH)
+        if (ft.dailyBias) {
+          const db = ft.dailyBias;
+          const alignBadge = document.getElementById('db-alignment-status');
+          if (alignBadge) {
+            alignBadge.innerText = db.alignmentStatus;
+            if (db.alignmentStatus.includes('LONG') || db.alignmentStatus.includes('🟢')) {
+              alignBadge.className = 'bias-badge bias-badge-bull';
+            } else if (db.alignmentStatus.includes('SHORT') || db.alignmentStatus.includes('🔴')) {
+              alignBadge.className = 'bias-badge bias-badge-bear';
+            } else {
+              alignBadge.className = 'bias-badge bias-badge-neutral';
+            }
+          }
+
+          const alignScore = document.getElementById('db-alignment-score');
+          if (alignScore) alignScore.innerText = `${db.alignmentScore}% Cùng Pha`;
+
+          // Pillar 1: D1
+          const d1Badge = document.getElementById('db-d1-badge');
+          if (d1Badge) {
+            d1Badge.innerText = db.d1Bias;
+            d1Badge.className = `bias-badge ${db.d1Bias === 'BULLISH' ? 'bias-badge-bull' : (db.d1Bias === 'BEARISH' ? 'bias-badge-bear' : 'bias-badge-neutral')}`;
+          }
+          const d1Struct = document.getElementById('db-d1-struct');
+          if (d1Struct) d1Struct.innerText = db.d1Structure;
+
+          const d1PdhPdl = document.getElementById('db-d1-pdh-pdl');
+          if (d1PdhPdl) d1PdhPdl.innerText = `$${formatPriceLabel(db.previousDayLow)} - $${formatPriceLabel(db.previousDayHigh)}`;
+
+          const d1Sweep = document.getElementById('db-d1-sweep');
+          if (d1Sweep) d1Sweep.innerText = db.pdhPdlSweepStatus;
+
+          const d1Ema = document.getElementById('db-d1-ema');
+          if (d1Ema) d1Ema.innerText = `$${formatPriceLabel(db.d1Ema20)} / $${formatPriceLabel(db.d1Ema50)}`;
+
+          const d1Rsi = document.getElementById('db-d1-rsi');
+          if (d1Rsi) d1Rsi.innerText = `${db.d1Rsi14} (${db.d1Rsi14 >= 50 ? 'Phe Bò' : 'Phe Gấu'})`;
+
+          // Pillar 2: H4
+          const h4Badge = document.getElementById('db-h4-badge');
+          if (h4Badge) {
+            h4Badge.innerText = db.h4Bias;
+            h4Badge.className = `bias-badge ${db.h4Bias === 'BULLISH' ? 'bias-badge-bull' : (db.h4Bias === 'BEARISH' ? 'bias-badge-bear' : 'bias-badge-neutral')}`;
+          }
+          const h4Struct = document.getElementById('db-h4-struct');
+          if (h4Struct) h4Struct.innerText = db.h4Structure;
+
+          const h4Zone = document.getElementById('db-h4-zone');
+          if (h4Zone) h4Zone.innerText = db.h4KeyZone;
+
+          const h4Desc = document.getElementById('db-h4-desc');
+          if (h4Desc) h4Desc.innerText = db.h4BiasDescription;
+
+          const h4Ema = document.getElementById('db-h4-ema');
+          if (h4Ema) h4Ema.innerText = `$${formatPriceLabel(db.h4Ema50)}`;
+
+          const h4Rsi = document.getElementById('db-h4-rsi');
+          if (h4Rsi) h4Rsi.innerText = `${db.h4Rsi14} (${db.h4Rsi14 >= 50 ? 'Mạnh' : 'Yếu'})`;
+
+          // Pillar 3: M15
+          const m15Badge = document.getElementById('db-m15-badge');
+          if (m15Badge) {
+            m15Badge.innerText = db.m15Bias;
+            m15Badge.className = `bias-badge ${db.m15Bias === 'BULLISH' ? 'bias-badge-bull' : (db.m15Bias === 'BEARISH' ? 'bias-badge-bear' : 'bias-badge-neutral')}`;
+          }
+          const m15Trig = document.getElementById('db-m15-trigger');
+          if (m15Trig) m15Trig.innerText = db.m15Trigger;
+
+          const m15Zone = document.getElementById('db-m15-zone');
+          if (m15Zone) m15Zone.innerText = db.m15EntryZone;
+
+          const m15Desc = document.getElementById('db-m15-desc');
+          if (m15Desc) m15Desc.innerText = db.m15BiasDescription;
+
+          const m15Ema = document.getElementById('db-m15-ema');
+          if (m15Ema) m15Ema.innerText = `$${formatPriceLabel(db.m15Ema20)}`;
+
+          const m15Rsi = document.getElementById('db-m15-rsi');
+          if (m15Rsi) m15Rsi.innerText = `${db.m15Rsi14} (${db.m15Rsi14 >= 50 ? 'Bật Hồi' : 'Ép Bán'})`;
+
+          // Actionable Strategy Plan
+          const planEl = document.getElementById('db-action-plan');
+          if (planEl) planEl.innerText = db.actionablePlan;
+        }
+
+        // ICT & RSI & EMA Trade Setup
+        if (ft.ictSetup) {
+          currentIctSetup = ft.ictSetup;
+
+          const isHighConfidence = ft.ictSetup.confidenceScore > 70 && ft.ictSetup.optimalEntry > 0;
+
+          const badgeEl = document.getElementById('ict-setup-badge');
+          if (badgeEl) {
+            badgeEl.innerText = ft.ictSetup.setupAction;
+            if (isHighConfidence) {
+              if (ft.ictSetup.setupAction.includes('LONG')) {
+                badgeEl.className = 'ft-action-badge ft-action-long';
+              } else {
+                badgeEl.className = 'ft-action-badge ft-action-short';
+              }
+            } else {
+              badgeEl.className = 'ft-action-badge ft-action-neutral';
+            }
+          }
+
+          const confEl = document.getElementById('ict-conf-score');
+          if (confEl) {
+            confEl.innerText = `Độ tin cậy: ${ft.ictSetup.confidenceScore}% (${currentInterval.toUpperCase()})`;
+            confEl.style.color = isHighConfidence ? 'var(--green)' : 'var(--accent-yellow)';
+          }
+
+          const rrEl = document.getElementById('ict-rr-ratio');
+          if (rrEl) {
+            rrEl.innerText = isHighConfidence ? `1 : ${Number(ft.ictSetup.riskRewardRatio).toFixed(2)}` : 'Chưa kích hoạt';
+            rrEl.style.color = isHighConfidence ? 'var(--green)' : 'var(--text-muted)';
+          }
+
+          const levEl = document.getElementById('ict-rec-lev');
+          if (levEl) levEl.innerText = ft.ictSetup.leverageRule || '5x - 10x Isolated';
+
+          const entryEl = document.getElementById('ict-optimal-entry');
+          if (entryEl) entryEl.innerText = isHighConfidence ? formatCurrency(ft.ictSetup.optimalEntry) : 'Chờ đủ điều kiện (>70%)';
+
+          const slEl = document.getElementById('ict-sl');
+          if (slEl) slEl.innerText = isHighConfidence ? formatCurrency(ft.ictSetup.stopLoss) : '-- (Đứng ngoài)';
+
+          const tp1El = document.getElementById('ict-tp1');
+          if (tp1El) tp1El.innerText = isHighConfidence ? formatCurrency(ft.ictSetup.takeProfit1) : '--';
+
+          const tp2El = document.getElementById('ict-tp2');
+          if (tp2El) tp2El.innerText = isHighConfidence ? formatCurrency(ft.ictSetup.takeProfit2) : '--';
+
+          const tp3El = document.getElementById('ict-tp3');
+          if (tp3El) tp3El.innerText = isHighConfidence ? formatCurrency(ft.ictSetup.takeProfit3) : '--';
+
+          // Card 1: ICT
+          const structEl = document.getElementById('ict-structure');
+          if (structEl) structEl.innerText = ft.ictSetup.marketStructure;
+
+          const obEl = document.getElementById('ict-ob');
+          if (obEl) obEl.innerText = `${ft.ictSetup.orderBlockType} [${formatCurrency(ft.ictSetup.orderBlockLow)} - ${formatCurrency(ft.ictSetup.orderBlockHigh)}]`;
+
+          const fvgEl = document.getElementById('ict-fvg');
+          if (fvgEl) fvgEl.innerText = `${ft.ictSetup.fvgType} [${formatCurrency(ft.ictSetup.fvgLow)} - ${formatCurrency(ft.ictSetup.fvgHigh)}]`;
+
+          const sweepEl = document.getElementById('ict-sweep');
+          if (sweepEl) sweepEl.innerText = ft.ictSetup.liquiditySweep;
+
+          const oteEl = document.getElementById('ict-ote');
+          if (oteEl) oteEl.innerText = ft.ictSetup.oteFibZone;
+
+          // Card 2: RSI
+          const rsiValEl = document.getElementById('ict-rsi-val');
+          if (rsiValEl) rsiValEl.innerText = `RSI: ${ft.ictSetup.rsi14}`;
+
+          const pinEl = document.getElementById('rsi-pin');
+          if (pinEl) pinEl.style.left = `${Math.min(95, Math.max(5, ft.ictSetup.rsi14))}%`;
+
+          const rsiSentEl = document.getElementById('ict-rsi-sentiment');
+          if (rsiSentEl) rsiSentEl.innerText = ft.ictSetup.rsiSentiment;
+
+          const rsiDivEl = document.getElementById('ict-rsi-div');
+          if (rsiDivEl) rsiDivEl.innerText = ft.ictSetup.rsiDivergence;
+
+          // Card 3: EMA Ribbon
+          const emaTrendEl = document.getElementById('ict-ema-trend');
+          if (emaTrendEl) emaTrendEl.innerText = ft.ictSetup.emaTrend;
+
+          const ema20El = document.getElementById('ict-ema20');
+          if (ema20El) ema20El.innerText = formatCurrency(ft.ictSetup.ema20);
+
+          const ema50El = document.getElementById('ict-ema50');
+          if (ema50El) ema50El.innerText = formatCurrency(ft.ictSetup.ema50);
+
+          const ema200El = document.getElementById('ict-ema200');
+          if (ema200El) ema200El.innerText = formatCurrency(ft.ictSetup.ema200);
+
+          // Summary & Advice
+          const confSumEl = document.getElementById('ict-confluence-summary');
+          if (confSumEl) confSumEl.innerText = ft.ictSetup.confluenceSummary;
+
+          const riskRuleEl = document.getElementById('ict-risk-rule');
+          if (riskRuleEl) riskRuleEl.innerText = ft.ictSetup.riskManagementAdvice;
+
+          // Redraw chart with new overlay
+          renderChart();
+        }
+      } catch (err) {
+        console.warn('Error loadFuturesData:', err);
+      }
+    }
+
+    function formatCompactUsd(val) {
+      if (!val) return '$0.00';
+      if (val >= 1e9) return '$' + (val / 1e9).toFixed(2) + ' Tỷ';
+      if (val >= 1e6) return '$' + (val / 1e6).toFixed(2) + ' Triệu';
+      return formatCurrency(val);
+    }
+
+    function selectCoin(symbol) {
+      if (currentSymbol === symbol) return;
+      currentSymbol = symbol;
+
+      document.querySelectorAll('.coin-tab').forEach(t => t.classList.remove('active'));
+      const activeTab = document.getElementById(`tab-${symbol}`);
+      if (activeTab) activeTab.classList.add('active');
+
+      loadCoins();
+      loadChartData();
+      loadCycleData();
+      loadPredictionData();
+      loadFuturesData();
+
+      // Connect Binance live WebSocket for new coin
+      connectBinanceWebSocket(currentSymbol, currentInterval);
+    }
+
+    document.querySelectorAll('.tf-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentInterval = e.target.getAttribute('data-interval');
+        currentLimit = Number(e.target.getAttribute('data-limit'));
+        loadChartData();
+        loadFuturesData();
+
+        // Reconnect WebSocket with new interval
+        connectBinanceWebSocket(currentSymbol, currentInterval);
+      });
+    });
+
+    window.onload = async () => {
+      startLiveClock();
+      resizeCanvas();
+      await loadCoins();
+      await loadChartData();
+      await loadCycleData();
+      await loadPredictionData();
+      await loadFuturesData();
+      await loadSentiment();
+
+      // Start live tick-by-tick Binance WebSocket stream
+      connectBinanceWebSocket(currentSymbol, currentInterval);
+
+      // Fast live polling for Futures FT (Funding rate, OI, Long/Short ratio)
+      setInterval(() => {
+        loadFuturesData();
+      }, 4000);
+
+      // Refresh top coins & market sentiment
+      setInterval(() => {
+        loadCoins();
+      }, 10000);
+
+      // Refresh Cycle & Predictions
+      setInterval(() => {
+        loadCycleData();
+        loadPredictionData();
+      }, 20000);
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+@BinanceTracker.Api_HostAddress = http://localhost:5166
+
+GET {{BinanceTracker.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
