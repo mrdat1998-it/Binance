@@ -68,50 +68,42 @@ Hệ thống theo dõi thông tin tiền mã hóa, phân tích chu kỳ Halving 
 
 ## 🛠️ Kiến Trúc Hệ Thống
 
-Dự án được xây dựng theo kiến trúc hiện đại:
+Dự án được xây dựng theo kiến trúc C# .NET 9 hiện đại tích hợp sẵn Web Dashboard và Worker quét ngầm 24/7:
 ```
 D:\2026\Binance\
-├── backend/                       # C# ASP.NET Core Web API (.NET 9.0)
-│   ├── Controllers/               # API Endpoints
-│   │   ├── CoinsController.cs     # /api/coins (Dữ liệu giá 24h thời gian thực)
-│   │   ├── MarketController.cs    # /api/market/klines (Dữ liệu nến biểu đồ)
-│   │   ├── CycleController.cs     # /api/cycle/{symbol} (Phân tích chu kỳ Halving)
-│   │   ├── PredictionController.cs# /api/prediction/{symbol} (Dự đoán giá tương lai)
-│   │   └── SentimentController.cs # /api/sentiment (Chỉ số Fear & Greed)
-│   ├── Models/                    # DTOs & Domain Models
-│   │   └── CryptoModels.cs
-│   ├── Services/                  # Business Logic & External APIs
-│   │   ├── BinanceService.cs      # Kết nối Binance Public API
-│   │   ├── MarketCycleService.cs  # Thuật toán tính toán chu kỳ & Halving
-│   │   ├── PredictionService.cs   # Thuật toán dự báo tương lai & kịch bản
-│   │   └── SentimentService.cs    # Kết nối Alternative.me API
-│   ├── wwwroot/                   # Web Dashboard hoàn chỉnh phục vụ trực tiếp
-│   │   └── index.html             # Giao diện TradingView, nến tương tác, selector coin
-│   └── Program.cs                 # Cấu hình DI, CORS & Static SPA Serving
-│
-└── frontend/                      # Mã nguồn Angular (v19/v20 Standalone Components)
-    ├── src/
-    │   ├── app/
-    │   │   ├── models/crypto.model.ts
-    │   │   ├── services/crypto-api.service.ts
-    │   │   ├── app.component.ts
-    │   │   ├── app.component.html
-    │   │   ├── app.component.scss
-    │   │   └── app.config.ts
-    │   ├── index.html
-    │   ├── main.ts
-    │   └── styles.scss
-    ├── angular.json
-    ├── package.json
-    └── tsconfig.json
+└── backend/                       # C# ASP.NET Core Web API (.NET 9.0)
+    ├── Controllers/               # API Endpoints
+    │   ├── CoinsController.cs     # /api/coins (Dữ liệu giá 24h thời gian thực)
+    │   ├── MarketController.cs    # /api/market/klines (Dữ liệu nến biểu đồ)
+    │   ├── CycleController.cs     # /api/cycle/{symbol} (Phân tích chu kỳ Halving)
+    │   ├── PredictionController.cs# /api/prediction/{symbol} (Dự đoán giá tương lai)
+    │   ├── SentimentController.cs # /api/sentiment (Chỉ số Fear & Greed)
+    │   └── FuturesController.cs   # /api/futures (Phân tích phái sinh & Lịch sử lệnh)
+    ├── Data/                      # Entity Framework Core 9 + SQL Server
+    │   ├── AppDbContext.cs        # Kết nối CSDL SQL Server (Database: BinanceTracker)
+    │   ├── DbInitializer.cs       # Khởi tạo bảng và seed dữ liệu chuẩn ban đầu
+    │   └── Entities/              # TradeSignalEntity (Lưu trữ và giám sát lệnh)
+    ├── Workers/                   # Background Services 24/7
+    │   └── AutonomousTradeWorker.cs # Tự động quét Binance, kiểm tra SL/TP & ghi nhận lệnh độc lập
+    ├── Models/                    # DTOs & Domain Models
+    │   └── CryptoModels.cs
+    ├── Services/                  # Business Logic & External APIs
+    │   ├── BinanceService.cs      # Kết nối Binance Public API
+    │   ├── FuturesService.cs      # Phân tích Binance Futures & SMC ICT
+    │   ├── TradeHistoryService.cs # Quản lý lịch sử lệnh, chống trùng lặp & thống kê PnL
+    │   ├── MarketCycleService.cs  # Thuật toán tính toán chu kỳ & Halving
+    │   ├── PredictionService.cs   # Thuật toán dự báo tương lai & kịch bản
+    │   └── SentimentService.cs    # Kết nối Alternative.me API
+    ├── wwwroot/                   # Web Dashboard hoàn chỉnh phục vụ trực tiếp tại cổng 5166
+    │   └── index.html             # Giao diện TradingView, nến tương tác, selector coin, nhật ký lệnh
+    └── Program.cs                 # Cấu hình DI, Background Worker & Static SPA Serving
 ```
 
 ---
 
 ## 🚀 Hướng Dẫn Khởi Chạy
 
-### Cách 1: Khởi Chạy Nhanh Trực Tiếp (Khuyến nghị)
-Backend C# đã được tích hợp sẵn Static Web App phục vụ ngay lập tức tại cổng `5166`:
+Toàn bộ hệ thống Web Dashboard đã được tích hợp trực tiếp vào Backend tại cổng `5166`:
 
 1. Mở PowerShell trong thư mục dự án:
 ```powershell
@@ -122,24 +114,5 @@ dotnet run --urls=http://localhost:5166
 2. Mở trình duyệt web và truy cập:
 👉 **[http://localhost:5166](http://localhost:5166)**
 
-Giao diện sẽ hiển thị đầy đủ biểu đồ nến TradingView, bảng chọn coin, phân tích chu kỳ Halving, dự đoán kịch bản tương lai và chỉ số Fear & Greed thời gian thực.
-
----
-
-### Cách 2: Chạy Độc Lập Dự Án Angular Frontend
-Nếu bạn muốn phát triển thêm trên mã nguồn Angular:
-
-1. Chạy Backend C#:
-```powershell
-cd D:\2026\Binance\backend
-dotnet run --urls=http://localhost:5166
-```
-
-2. Cài đặt dependencies và chạy Angular:
-```powershell
-cd D:\2026\Binance\frontend
-npm install
-npm start
-```
-Angular dev-server sẽ chạy tại `http://localhost:4200` và tự động kết nối với API backend C# tại `http://localhost:5166/api`.
+Giao diện sẽ hiển thị đầy đủ biểu đồ nến TradingView, bảng chọn coin, phân tích chu kỳ Halving, dự đoán kịch bản tương lai, tín hiệu ICT SMC và bảng lưu trữ giám sát lệnh SL/TP theo thời gian thực (Giờ Việt Nam GMT+7). Hệ thống có sẵn Worker chạy ngầm 24/7 tự động giám sát thị trường ngay cả khi bạn tắt trình duyệt.
 
