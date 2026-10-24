@@ -9,14 +9,19 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
-// Register SQLite Database Context (ACID Relational Storage)
-var dataDir = Path.Combine(builder.Environment.ContentRootPath, "Data");
-Directory.CreateDirectory(dataDir);
-var dbPath = Path.Combine(dataDir, "binance_tracker.db");
+// Register SQL Server Database Context
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? "Data Source=.;Initial Catalog=BinanceTracker;Persist Security Info=True;User ID=admin;Password=shc@1234;Pooling=False;MultipleActiveResultSets=True;Encrypt=True;TrustServerCertificate=True;Command Timeout=0";
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseSqlite($"Data Source={dbPath}");
+    options.UseSqlServer(connectionString, sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorNumbersToAdd: null);
+    });
 });
 
 // Register HttpClient services
@@ -42,7 +47,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Initialize SQLite database and seed initial trade history
+// Initialize SQL Server database and seed initial trade history
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();

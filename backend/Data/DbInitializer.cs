@@ -11,7 +11,7 @@ public static class DbInitializer
     {
         try
         {
-            // Ensure the SQLite database and all tables are created
+            // Ensure the SQL Server database and all tables are created
             await context.Database.EnsureCreatedAsync();
 
             // Check if any records already exist in the database
@@ -34,7 +34,7 @@ public static class DbInitializer
                             await context.TradeSignals.AddRangeAsync(entities);
                             await context.SaveChangesAsync();
                             seededFromJson = true;
-                            logger.LogInformation("Successfully migrated {Count} trade records from JSON into SQLite database.", entities.Count);
+                            logger.LogInformation("Successfully migrated {Count} trade records from JSON into SQL Server database.", entities.Count);
                         }
                     }
                     catch (Exception ex)
@@ -48,13 +48,13 @@ public static class DbInitializer
                     var defaultSeeds = GetDefaultSeeds();
                     await context.TradeSignals.AddRangeAsync(defaultSeeds);
                     await context.SaveChangesAsync();
-                    logger.LogInformation("Seeded {Count} default trade records into SQLite database.", defaultSeeds.Count);
+                    logger.LogInformation("Seeded {Count} default trade records into SQL Server database.", defaultSeeds.Count);
                 }
             }
             else
             {
                 var count = await context.TradeSignals.CountAsync();
-                logger.LogInformation("SQLite database initialized successfully with {Count} trade signal records.", count);
+                logger.LogInformation("SQL Server database initialized successfully with {Count} trade signal records.", count);
             }
         }
         catch (Exception ex)
@@ -321,3 +321,4 @@ public static class DbInitializer
         };
     }
 }
+
