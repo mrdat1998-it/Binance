@@ -194,4 +194,36 @@ export interface FuturesAnalysis {
   selectedInterval?: string;
 }
 
+export interface TradeSignalRecord {
+  id: string;
+  symbol: string;
+  signalAction: string; // "LONG" or "SHORT"
+  timeframe: string;
+  confidenceScore: number;
+  entryPrice: number;
+  stopLoss: number;
+  takeProfit1: number;
+  takeProfit2: number;
+  takeProfit3: number;
+  riskRewardRatio: number;
+  startTime: string;
+  endTime?: string | null;
+  status: string; // "ACTIVE", "HIT_TP1", "HIT_TP2", "HIT_TP3", "HIT_SL", "CANCELLED"
+  exitPrice?: number | null;
+  pnlPercent?: number | null;
+  notes?: string;
+}
+
+export interface TradeHistorySummary {
+  totalTrades: number;
+  activeTrades: number;
+  winTrades: number;
+  lossTrades: number;
+  winRatePercent: number;
+  totalPnlPercent: number;
+  averageRiskReward: number;
+  records: TradeSignalRecord[];
+}
+
+
 

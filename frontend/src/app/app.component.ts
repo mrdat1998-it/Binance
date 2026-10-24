@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription, interval } from 'rxjs';
 import { CryptoApiService } from './services/crypto-api.service';
-import { CoinSummary, CycleIndicator, FuturesAnalysis, KlineCandle, PredictionResult, SentimentData } from './models/crypto.model';
+import { CoinSummary, CycleIndicator, FuturesAnalysis, KlineCandle, PredictionResult, SentimentData, TradeHistorySummary } from './models/crypto.model';
 import { PriceChartComponent } from './components/price-chart/price-chart.component';
 
 @Component({
@@ -21,6 +21,8 @@ export class AppComponent implements OnInit, OnDestroy {
   cycleData = signal<CycleIndicator | null>(null);
   predictionData = signal<PredictionResult | null>(null);
   futuresData = signal<FuturesAnalysis | null>(null);
+  tradeHistory = signal<TradeHistorySummary | null>(null);
+  journalFilterMode = signal<'all' | 'current'>('all');
   sentiment = signal<SentimentData | null>(null);
   klines = signal<KlineCandle[]>([]);
   currentTimeframe = signal<string>('15m');
@@ -57,6 +59,7 @@ export class AppComponent implements OnInit, OnDestroy {
         next: (ft) => this.futuresData.set(ft),
         error: (err) => console.warn('Background FT poll error:', err)
       });
+      this.loadTradeHistory();
     });
   }
 
@@ -64,6 +67,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.loadCoins();
     this.loadSentiment();
     this.loadCoinDetails(this.selectedSymbol());
+    this.loadTradeHistory();
   }
 
   loadCoins(): void {
@@ -128,6 +132,21 @@ export class AppComponent implements OnInit, OnDestroy {
       next: (ft) => this.futuresData.set(ft),
       error: (err) => console.error('Error loading futures data:', err)
     });
+
+    this.loadTradeHistory();
+  }
+
+  loadTradeHistory(): void {
+    const sym = this.journalFilterMode() === 'current' ? this.selectedSymbol() : undefined;
+    this.api.getTradeHistory(sym).subscribe({
+      next: (data) => this.tradeHistory.set(data),
+      error: (err) => console.warn('Error loading trade history:', err)
+    });
+  }
+
+  setJournalFilter(mode: 'all' | 'current'): void {
+    this.journalFilterMode.set(mode);
+    this.loadTradeHistory();
   }
 
   startLiveStream(symbol: string, tf: string): void {

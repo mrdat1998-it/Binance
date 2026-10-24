@@ -1256,6 +1256,252 @@ $text-muted: #848e9c;
         }
       }
     }
+
+    .journal-card {
+      background: $card-bg;
+      border: 1px solid $card-border;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .journal-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .filter-btn {
+          background: transparent;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: $text-muted;
+          font-size: 0.75rem;
+          font-weight: 700;
+          font-family: 'JetBrains Mono', monospace;
+          padding: 4px 10px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          &.active {
+            background: rgba(240, 185, 11, 0.15);
+            color: $accent-yellow;
+            border-color: rgba(240, 185, 11, 0.4);
+          }
+
+          &:hover:not(.active) {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.25);
+          }
+        }
+
+        .btn-refresh-icon {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: $text-muted;
+          padding: 4px 8px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 0.75rem;
+
+          &:hover {
+            color: #fff;
+          }
+        }
+      }
+
+      .journal-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 12px;
+
+        @media (max-width: 1200px) {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        @media (max-width: 600px) {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .journal-stat-item {
+          background: rgba(14, 18, 26, 0.85);
+          border: 1px solid $card-border;
+          border-radius: 6px;
+          padding: 12px 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+
+          .js-label {
+            font-size: 0.7rem;
+            color: $text-muted;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+          }
+
+          .js-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #fff;
+
+            &.cyan { color: #00e5ff; }
+            &.green { color: $green; }
+            &.red { color: $red; }
+            &.gold { color: $accent-yellow; }
+          }
+
+          .js-sub {
+            font-size: 0.68rem;
+            color: $text-muted;
+          }
+        }
+      }
+
+      .journal-table-wrap {
+        width: 100%;
+        overflow-x: auto;
+        border: 1px solid $card-border;
+        border-radius: 8px;
+        background: rgba(11, 14, 20, 0.95);
+
+        .journal-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 0.8rem;
+          text-align: left;
+
+          th {
+            background: rgba(22, 28, 40, 0.9);
+            color: $text-muted;
+            font-weight: 700;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px 14px;
+            border-bottom: 1px solid $card-border;
+            white-space: nowrap;
+          }
+
+          td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            white-space: nowrap;
+            vertical-align: middle;
+
+            .td-sym {
+              font-weight: 700;
+              color: #fff;
+            }
+
+            .td-tf {
+              font-size: 0.68rem;
+              color: $accent-yellow;
+              font-family: 'JetBrains Mono', monospace;
+            }
+
+            .badge-signal {
+              font-family: 'JetBrains Mono', monospace;
+              font-weight: 800;
+              font-size: 0.75rem;
+              padding: 3px 8px;
+              border-radius: 4px;
+
+              &.long {
+                background: rgba(14, 203, 129, 0.18);
+                color: $green;
+                border: 1px solid rgba(14, 203, 129, 0.4);
+              }
+
+              &.short {
+                background: rgba(246, 70, 93, 0.18);
+                color: $red;
+                border: 1px solid rgba(246, 70, 93, 0.4);
+              }
+            }
+
+            .badge-status {
+              font-family: 'JetBrains Mono', monospace;
+              font-size: 0.72rem;
+              font-weight: 700;
+              padding: 3px 8px;
+              border-radius: 4px;
+              display: inline-flex;
+              align-items: center;
+              gap: 4px;
+
+              &.active {
+                background: rgba(0, 229, 255, 0.15);
+                color: #00e5ff;
+                border: 1px solid rgba(0, 229, 255, 0.4);
+              }
+
+              &.tp1 {
+                background: rgba(14, 203, 129, 0.15);
+                color: $green;
+                border: 1px solid rgba(14, 203, 129, 0.4);
+              }
+
+              &.tp2 {
+                background: rgba(14, 203, 129, 0.25);
+                color: #00ff88;
+                font-weight: 800;
+                border: 1px solid rgba(0, 255, 136, 0.5);
+              }
+
+              &.tp3 {
+                background: linear-gradient(90deg, rgba(14, 203, 129, 0.3), rgba(0, 229, 255, 0.3));
+                color: #fff;
+                font-weight: 800;
+                border: 1px solid $green;
+              }
+
+              &.sl {
+                background: rgba(246, 70, 93, 0.2);
+                color: $red;
+                border: 1px solid rgba(246, 70, 93, 0.45);
+              }
+            }
+
+            .price-col {
+              font-family: 'JetBrains Mono', monospace;
+              font-weight: 700;
+
+              &.cyan { color: #00e5ff; }
+              &.red { color: $red; }
+            }
+
+            .tp-col {
+              font-family: 'JetBrains Mono', monospace;
+              font-size: 0.75rem;
+              color: $green;
+            }
+
+            .time-col {
+              font-family: 'JetBrains Mono', monospace;
+              font-size: 0.75rem;
+              color: #b7bdc6;
+            }
+
+            .notes-col {
+              max-width: 280px;
+              font-size: 0.72rem;
+              color: $text-muted;
+              white-space: normal;
+              line-height: 1.35;
+            }
+
+            .empty-cell {
+              text-align: center;
+              padding: 30px;
+              color: $text-muted;
+            }
+          }
+        }
+      }
+    }
   }
 }
 

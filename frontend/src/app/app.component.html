@@ -561,6 +561,141 @@
       </div>
     }
 
+    <!-- 2.8 TRADE HISTORY & REALTIME SL/TP JOURNAL TABLE -->
+    @if (tradeHistory(); as th) {
+      <div class="card journal-card">
+        <div class="card-header">
+          <h2>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Bảng Lưu Trữ Lịch Sử Lệnh & Giám Sát Kết Quả (Entry - SL - TP Journal)
+          </h2>
+          <div class="journal-controls">
+            <button class="filter-btn" [class.active]="journalFilterMode() === 'all'" (click)="setJournalFilter('all')">
+              Tất Cả Coin
+            </button>
+            <button class="filter-btn" [class.active]="journalFilterMode() === 'current'" (click)="setJournalFilter('current')">
+              Chỉ Xem {{ selectedSymbol() }}
+            </button>
+            <button class="btn-refresh-icon" (click)="loadTradeHistory()" title="Cập nhật nhật ký">
+              ↺
+            </button>
+          </div>
+        </div>
+
+        <!-- 6 STAT CARDS -->
+        <div class="journal-stats-grid">
+          <div class="journal-stat-item">
+            <span class="js-label">Tổng Lệnh Đã Phát</span>
+            <span class="js-val">{{ th.totalTrades }}</span>
+            <span class="js-sub">Độ tin cậy &gt; 70%</span>
+          </div>
+          <div class="journal-stat-item">
+            <span class="js-label">Lệnh Đang Chạy</span>
+            <span class="js-val cyan">{{ th.activeTrades }}</span>
+            <span class="js-sub">Đang giám sát TP/SL</span>
+          </div>
+          <div class="journal-stat-item">
+            <span class="js-label">Thắng (Chạm TP)</span>
+            <span class="js-val green">{{ th.winTrades }}</span>
+            <span class="js-sub">Đạt TP1 / TP2 / TP3</span>
+          </div>
+          <div class="journal-stat-item">
+            <span class="js-label">Thua (Dính SL)</span>
+            <span class="js-val red">{{ th.lossTrades }}</span>
+            <span class="js-sub">Cắt lỗ kỷ luật</span>
+          </div>
+          <div class="journal-stat-item">
+            <span class="js-label">Tỷ Lệ Thắng (Win Rate)</span>
+            <span class="js-val gold">{{ th.winRatePercent | number:'1.1-1' }}%</span>
+            <span class="js-sub">Lệnh đã hoàn tất</span>
+          </div>
+          <div class="journal-stat-item">
+            <span class="js-label">Lợi Nhuận Ròng (PnL)</span>
+            <span class="js-val" [class.green]="th.totalPnlPercent >= 0" [class.red]="th.totalPnlPercent < 0">
+              {{ th.totalPnlPercent >= 0 ? '+' : '' }}{{ th.totalPnlPercent | number:'1.2-2' }}%
+            </span>
+            <span class="js-sub">Tổng % lợi nhuận</span>
+          </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="journal-table-wrap">
+          <table class="journal-table">
+            <thead>
+              <tr>
+                <th>Mã / Khung Giờ</th>
+                <th>Vị Thế</th>
+                <th>Độ Tin Cậy</th>
+                <th>Thời Điểm Vào (Start)</th>
+                <th>Giá Entry</th>
+                <th>Dừng Lỗ (SL)</th>
+                <th>Mục Tiêu (TP1 / TP2)</th>
+                <th>Trạng Thái</th>
+                <th>Thời Điểm Đóng (End)</th>
+                <th>Hiệu Suất PnL</th>
+                <th>Ghi Chú Kỹ Thuật</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of th.records; track r.id) {
+                <tr>
+                  <td>
+                    <div class="td-sym">{{ r.symbol }}</div>
+                    <div class="td-tf">{{ r.timeframe.toUpperCase() }} • {{ r.id }}</div>
+                  </td>
+                  <td>
+                    <span class="badge-signal" [class.long]="r.signalAction === 'LONG'" [class.short]="r.signalAction === 'SHORT'">
+                      {{ r.signalAction === 'LONG' ? '▲ LONG' : '▼ SHORT' }}
+                    </span>
+                  </td>
+                  <td><b class="gold-text">{{ r.confidenceScore }}%</b></td>
+                  <td class="time-col">{{ r.startTime | date:'dd/MM HH:mm' }}</td>
+                  <td class="price-col cyan">{{ formatCurrency(r.entryPrice) }}</td>
+                  <td class="price-col red">{{ formatCurrency(r.stopLoss) }}</td>
+                  <td>
+                    <div class="tp-col">TP1: {{ formatCurrency(r.takeProfit1) }}</div>
+                    <div class="tp-col">TP2: {{ formatCurrency(r.takeProfit2) }}</div>
+                  </td>
+                  <td>
+                    @if (r.status === 'ACTIVE') {
+                      <span class="badge-status active">⏳ Đang Chạy</span>
+                    } @else if (r.status === 'HIT_TP1') {
+                      <span class="badge-status tp1">🎯 Chạm TP1</span>
+                    } @else if (r.status === 'HIT_TP2') {
+                      <span class="badge-status tp2">🏆 Chạm TP2</span>
+                    } @else if (r.status === 'HIT_TP3') {
+                      <span class="badge-status tp3">🚀 Chạm TP3 Max</span>
+                    } @else if (r.status === 'HIT_SL') {
+                      <span class="badge-status sl">🛑 Dính SL</span>
+                    } @else {
+                      <span class="badge-status">{{ r.status }}</span>
+                    }
+                  </td>
+                  <td class="time-col">
+                    {{ r.endTime ? (r.endTime | date:'dd/MM HH:mm') : 'Đang mở' }}
+                  </td>
+                  <td>
+                    @if (r.pnlPercent !== null && r.pnlPercent !== undefined) {
+                      <b [class.green-text]="r.pnlPercent >= 0" [class.red-text]="r.pnlPercent < 0">
+                        {{ r.pnlPercent >= 0 ? '+' : '' }}{{ r.pnlPercent | number:'1.2-2' }}%
+                      </b>
+                    } @else {
+                      <span class="muted-text">--</span>
+                    }
+                  </td>
+                  <td class="notes-col">{{ r.notes }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="11" class="empty-cell">Chưa có lệnh nào được lưu cho bộ lọc này. Hệ thống chỉ tự động ghi nhận khi hội tụ đủ điều kiện &gt; 70%.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
     <!-- 3. FUTURE FORECASTS & PREDICTIONS PANEL -->
     @if (predictionData(); as pred) {
       <div class="card prediction-card">

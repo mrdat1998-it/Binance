@@ -214,5 +214,36 @@ public record IctRsiEmaAnalysis(
     string RiskManagementAdvice
 );
 
+public record TradeSignalRecord(
+    string Id,
+    string Symbol,
+    string SignalAction, // "LONG" or "SHORT"
+    string Timeframe,    // "5m", "15m", "1h", "4h", "1d"
+    int ConfidenceScore, // e.g. 78
+    decimal EntryPrice,
+    decimal StopLoss,
+    decimal TakeProfit1,
+    decimal TakeProfit2,
+    decimal TakeProfit3,
+    decimal RiskRewardRatio,
+    DateTime StartTime,
+    DateTime? EndTime,
+    string Status, // "ACTIVE", "HIT_TP1", "HIT_TP2", "HIT_TP3", "HIT_SL", "CANCELLED"
+    decimal? ExitPrice,
+    decimal? PnlPercent,
+    string Notes
+);
+
+public record TradeHistorySummary(
+    int TotalTrades,
+    int ActiveTrades,
+    int WinTrades,
+    int LossTrades,
+    decimal WinRatePercent,
+    decimal TotalPnlPercent,
+    decimal AverageRiskReward,
+    List<TradeSignalRecord> Records
+);
+
 
 

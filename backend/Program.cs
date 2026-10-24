@@ -15,6 +15,7 @@ builder.Services.AddHttpClient<IFuturesService, FuturesService>();
 // Register Domain Services
 builder.Services.AddScoped<IMarketCycleService, MarketCycleService>();
 builder.Services.AddScoped<IPredictionService, PredictionService>();
+builder.Services.AddSingleton<ITradeHistoryService, TradeHistoryService>();
 
 // Configure CORS for Angular frontend (both localhost:4200 and any dev port)
 builder.Services.AddCors(options =>

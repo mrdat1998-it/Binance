@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CoinSummary, CycleIndicator, FuturesAnalysis, KlineCandle, PredictionResult, SentimentData } from '../models/crypto.model';
+import { CoinSummary, CycleIndicator, FuturesAnalysis, KlineCandle, PredictionResult, SentimentData, TradeHistorySummary } from '../models/crypto.model';
 
 @Injectable({
   providedIn: 'root'
@@ -37,6 +37,11 @@ export class CryptoApiService {
 
   getFuturesAnalysis(symbol: string, interval = '15m'): Observable<FuturesAnalysis> {
     return this.http.get<FuturesAnalysis>(`${this.baseUrl}/futures/${symbol}?interval=${interval}`);
+  }
+
+  getTradeHistory(symbol?: string): Observable<TradeHistorySummary> {
+    const url = symbol ? `${this.baseUrl}/futures/history?symbol=${symbol}` : `${this.baseUrl}/futures/history`;
+    return this.http.get<TradeHistorySummary>(url);
   }
 
   // Real-time tick-by-tick Binance WebSocket Stream
