@@ -674,12 +674,12 @@
                 <th>Mã / Khung Giờ</th>
                 <th>Vị Thế</th>
                 <th>Độ Tin Cậy</th>
-                <th>Thời Điểm Vào (Start)</th>
+                <th>Thời Điểm Vào (Giờ VN)</th>
                 <th>Giá Entry</th>
                 <th>Dừng Lỗ (SL)</th>
                 <th>Mục Tiêu (TP1 / TP2)</th>
                 <th>Trạng Thái</th>
-                <th>Thời Điểm Đóng (End)</th>
+                <th>Thời Điểm Đóng (Giờ VN)</th>
                 <th>Hiệu Suất PnL</th>
                 <th>Ghi Chú Kỹ Thuật</th>
               </tr>
@@ -697,7 +697,7 @@
                     </span>
                   </td>
                   <td><b class="gold-text">{{ r.confidenceScore }}%</b></td>
-                  <td class="time-col">{{ r.startTime | date:'dd/MM HH:mm' }}</td>
+                  <td class="time-col">{{ r.startTime | date:'dd/MM HH:mm':'+0700' }}</td>
                   <td class="price-col cyan">{{ formatCurrency(r.entryPrice) }}</td>
                   <td class="price-col red">{{ formatCurrency(r.stopLoss) }}</td>
                   <td>
@@ -720,7 +720,7 @@
                     }
                   </td>
                   <td class="time-col">
-                    {{ r.endTime ? (r.endTime | date:'dd/MM HH:mm') : 'Đang mở' }}
+                    {{ r.endTime ? (r.endTime | date:'dd/MM HH:mm':'+0700') : 'Đang mở' }}
                   </td>
                   <td>
                     @if (r.pnlPercent !== null && r.pnlPercent !== undefined) {

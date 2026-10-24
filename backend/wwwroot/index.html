@@ -2081,12 +2081,12 @@
               <th>Mã / Khung Giờ</th>
               <th>Vị Thế</th>
               <th>Độ Tin Cậy</th>
-              <th>Thời Điểm Vào (Start)</th>
+              <th>Thời Điểm Vào (Giờ VN)</th>
               <th>Giá Entry</th>
               <th>Dừng Lỗ (SL)</th>
               <th>Mục Tiêu (TP1 / TP2)</th>
               <th>Trạng Thái</th>
-              <th>Thời Điểm Đóng (End)</th>
+              <th>Thời Điểm Đóng (Giờ VN)</th>
               <th>Hiệu Suất PnL</th>
               <th>Ghi Chú Kỹ Thuật</th>
             </tr>
@@ -3578,7 +3578,12 @@
 
     function formatJournalDate(isoStr) {
       if (!isoStr) return '--';
-      const d = new Date(isoStr);
+      // Chuẩn hóa chuỗi thời gian về chuẩn ISO UTC nếu chưa có đuôi Z
+      const normalized = (typeof isoStr === 'string' && !isoStr.endsWith('Z') && !isoStr.includes('+')) 
+        ? isoStr + 'Z' 
+        : isoStr;
+      const d = new Date(normalized);
+      if (isNaN(d.getTime())) return isoStr;
       const pad = n => n < 10 ? '0' + n : n;
       return `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
