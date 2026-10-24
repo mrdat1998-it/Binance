@@ -131,6 +131,28 @@ public class TradeHistoryService : ITradeHistoryService
                 return currentActive.ToRecord(); // Đang có vị thế chạy, giữ nguyên
             }
 
+            // Chống mở lệnh trùng lặp / Re-entry Spam:
+            // Nếu có lệnh vừa kết thúc trong vòng 45 phút cùng chiều và giá Entry lệch < 0.6%, không tạo lệnh mới
+            var recentClosed = await _dbContext.TradeSignals
+                .Where(r => r.Symbol == normSymbol && r.SignalAction == action && r.Status != "ACTIVE")
+                .OrderByDescending(r => r.EndTime ?? r.StartTime)
+                .FirstOrDefaultAsync();
+
+            if (recentClosed != null)
+            {
+                var timeSinceClose = DateTime.UtcNow - (recentClosed.EndTime ?? recentClosed.StartTime);
+                if (timeSinceClose.TotalMinutes < 45)
+                {
+                    decimal priceDiffPct = Math.Abs(recentClosed.EntryPrice - ict.OptimalEntry) / ict.OptimalEntry * 100m;
+                    if (priceDiffPct < 0.6m)
+                    {
+                        _logger.LogInformation("Database: Bỏ qua tạo lệnh trùng cho {Symbol} {Action} vì lệnh {RecentId} vừa đóng cách đây {Min:N0} phút tại vùng giá tương tự ({Entry}).",
+                            normSymbol, action, recentClosed.Id, timeSinceClose.TotalMinutes, recentClosed.EntryPrice);
+                        return null;
+                    }
+                }
+            }
+
             var id = $"TRD-{Guid.NewGuid().ToString("N")[..6].ToUpperInvariant()}";
             var now = DateTime.UtcNow;
 

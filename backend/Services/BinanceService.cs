@@ -227,18 +227,18 @@ public class BinanceService : IBinanceService
     {
         decimal basePrice = coin.Symbol switch
         {
-            "BTCUSDT" => 97500m,
-            "ETHUSDT" => 3350m,
-            "SOLUSDT" => 215m,
-            "BNBUSDT" => 640m,
-            "XRPUSDT" => 2.45m,
-            "DOGEUSDT" => 0.38m,
-            "ADAUSDT" => 0.85m,
-            "AVAXUSDT" => 42.5m,
-            "LINKUSDT" => 22.8m,
-            "SUIUSDT" => 3.45m,
-            "NEARUSDT" => 6.85m,
-            "DOTUSDT" => 8.90m,
+            "BTCUSDT" => 80800m,
+            "ETHUSDT" => 2380m,
+            "SOLUSDT" => 102.5m,
+            "BNBUSDT" => 735m,
+            "XRPUSDT" => 1.28m,
+            "DOGEUSDT" => 0.078m,
+            "ADAUSDT" => 0.21m,
+            "AVAXUSDT" => 9.02m,
+            "LINKUSDT" => 11.78m,
+            "SUIUSDT" => 0.95m,
+            "NEARUSDT" => 4.65m,
+            "DOTUSDT" => 1.08m,
             _ => 100m
         };
 

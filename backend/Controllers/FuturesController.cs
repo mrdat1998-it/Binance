@@ -28,20 +28,24 @@ public class FuturesController : ControllerBase
         [FromQuery] string interval = "15m")
     {
         var coin = await _binanceService.GetCoinSummaryAsync(symbol);
-        decimal fallbackPrice = coin?.Price ?? 50000m;
+        decimal initialPrice = coin?.Price ?? 80800m;
 
-        // 1. Giám sát giá live với các lệnh active trước: Kiểm tra đã chạm SL hay TP chưa
-        await _tradeHistoryService.EvaluateActiveSignalsAsync(symbol, fallbackPrice);
-
-        // 2. Lấy phân tích (nếu còn lệnh active thì FuturesService khóa giữ nguyên vị thế active, không phát lệnh mới)
+        // 1. Lấy dữ liệu nến và phân tích kỹ thuật
         var klines = await _binanceService.GetKlinesAsync(symbol, interval, 120);
-        var analysis = await _futuresService.GetFuturesAnalysisAsync(symbol, fallbackPrice, interval, klines);
+        var analysis = await _futuresService.GetFuturesAnalysisAsync(symbol, initialPrice, interval, klines);
+
+        // 2. Giám sát giá live với các lệnh active: Dùng giá MarkPrice thật từ Binance Futures
+        decimal trueLivePrice = analysis.MarkPrice > 0 ? analysis.MarkPrice : initialPrice;
+        if (trueLivePrice > 0)
+        {
+            await _tradeHistoryService.EvaluateActiveSignalsAsync(symbol, trueLivePrice);
+        }
 
         // 3. Chỉ khi KHÔNG còn lệnh active nào đang chạy và tín hiệu mới đạt chuẩn > 70% thì mới ghi nhận lệnh mới!
         var activeTrade = await _tradeHistoryService.GetActiveSignalAsync(symbol);
         if (activeTrade == null && analysis.IctSetup != null && analysis.IctSetup.ConfidenceScore > 70 && analysis.IctSetup.OptimalEntry > 0)
         {
-            await _tradeHistoryService.RecordSignalIfEligibleAsync(symbol, interval, analysis.IctSetup, fallbackPrice);
+            await _tradeHistoryService.RecordSignalIfEligibleAsync(symbol, interval, analysis.IctSetup, trueLivePrice);
         }
 
         return Ok(analysis);
