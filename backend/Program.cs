@@ -1,5 +1,6 @@
 using BinanceTracker.Api.Data;
 using BinanceTracker.Api.Services;
+using BinanceTracker.Api.Workers;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,6 +34,9 @@ builder.Services.AddHttpClient<IFuturesService, FuturesService>();
 builder.Services.AddScoped<IMarketCycleService, MarketCycleService>();
 builder.Services.AddScoped<IPredictionService, PredictionService>();
 builder.Services.AddScoped<ITradeHistoryService, TradeHistoryService>();
+
+// Register Autonomous 24/7 Background Worker (Self-operating without browser)
+builder.Services.AddHostedService<AutonomousTradeWorker>();
 
 // Configure CORS for Angular frontend (both localhost:4200 and any dev port)
 builder.Services.AddCors(options =>
