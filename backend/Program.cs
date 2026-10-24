@@ -1,4 +1,6 @@
+using BinanceTracker.Api.Data;
 using BinanceTracker.Api.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +8,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
+
+// Register SQLite Database Context (ACID Relational Storage)
+var dataDir = Path.Combine(builder.Environment.ContentRootPath, "Data");
+Directory.CreateDirectory(dataDir);
+var dbPath = Path.Combine(dataDir, "binance_tracker.db");
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlite($"Data Source={dbPath}");
+});
 
 // Register HttpClient services
 builder.Services.AddHttpClient<IBinanceService, BinanceService>();
@@ -15,7 +27,7 @@ builder.Services.AddHttpClient<IFuturesService, FuturesService>();
 // Register Domain Services
 builder.Services.AddScoped<IMarketCycleService, MarketCycleService>();
 builder.Services.AddScoped<IPredictionService, PredictionService>();
-builder.Services.AddSingleton<ITradeHistoryService, TradeHistoryService>();
+builder.Services.AddScoped<ITradeHistoryService, TradeHistoryService>();
 
 // Configure CORS for Angular frontend (both localhost:4200 and any dev port)
 builder.Services.AddCors(options =>
@@ -29,6 +41,14 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Initialize SQLite database and seed initial trade history
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    await DbInitializer.InitializeDatabaseAsync(dbContext, app.Environment, logger);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

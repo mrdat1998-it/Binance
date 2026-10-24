@@ -30,3 +30,8 @@ ehthumbs.db
 Desktop.ini
 .DS_Store
 
+# SQLite Database
+*.db
+*.db-shm
+*.db-wal
+
