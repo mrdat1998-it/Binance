@@ -23,6 +23,8 @@ export class AppComponent implements OnInit, OnDestroy {
   futuresData = signal<FuturesAnalysis | null>(null);
   tradeHistory = signal<TradeHistorySummary | null>(null);
   journalFilterMode = signal<'all' | 'current'>('all');
+  journalCoinFilter = signal<string>('all');
+  journalStatusFilter = signal<string>('all');
   sentiment = signal<SentimentData | null>(null);
   klines = signal<KlineCandle[]>([]);
   currentTimeframe = signal<string>('15m');
@@ -137,15 +139,34 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   loadTradeHistory(): void {
-    const sym = this.journalFilterMode() === 'current' ? this.selectedSymbol() : undefined;
-    this.api.getTradeHistory(sym).subscribe({
+    let sym: string | undefined = undefined;
+    const coin = this.journalCoinFilter();
+    if (coin === 'current') {
+      sym = this.selectedSymbol();
+    } else if (coin !== 'all') {
+      sym = coin;
+    }
+
+    const stat = this.journalStatusFilter() !== 'all' ? this.journalStatusFilter() : undefined;
+
+    this.api.getTradeHistory(sym, stat).subscribe({
       next: (data) => this.tradeHistory.set(data),
       error: (err) => console.warn('Error loading trade history:', err)
     });
   }
 
+  setJournalCoinFilter(coin: string): void {
+    this.journalCoinFilter.set(coin);
+    this.loadTradeHistory();
+  }
+
+  setJournalStatusFilter(status: string): void {
+    this.journalStatusFilter.set(status);
+    this.loadTradeHistory();
+  }
+
   setJournalFilter(mode: 'all' | 'current'): void {
-    this.journalFilterMode.set(mode);
+    this.journalCoinFilter.set(mode);
     this.loadTradeHistory();
   }
 

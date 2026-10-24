@@ -63,15 +63,47 @@ public class TradeHistoryService : ITradeHistoryService
         }
     }
 
-    public async Task<TradeHistorySummary> GetHistorySummaryAsync(string? symbol = null)
+    public async Task<TradeHistorySummary> GetHistorySummaryAsync(string? symbol = null, string? status = null)
     {
         await _lock.WaitAsync();
         try
         {
             var records = await LoadRecordsAsync();
-            var filtered = string.IsNullOrWhiteSpace(symbol)
-                ? records
-                : records.Where(r => r.Symbol.Equals(symbol, StringComparison.OrdinalIgnoreCase)).ToList();
+            var filtered = records.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(symbol) && !symbol.Equals("all", StringComparison.OrdinalIgnoreCase))
+            {
+                var normSym = symbol.Trim().ToUpperInvariant();
+                filtered = filtered.Where(r => 
+                    r.Symbol.Equals(normSym, StringComparison.OrdinalIgnoreCase) ||
+                    r.Symbol.Equals(normSym + "USDT", StringComparison.OrdinalIgnoreCase) ||
+                    (normSym.EndsWith("USDT") && r.Symbol.Equals(normSym, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(status) && !status.Equals("all", StringComparison.OrdinalIgnoreCase))
+            {
+                var normStatus = status.Trim().ToUpperInvariant();
+                if (normStatus == "ACTIVE")
+                {
+                    filtered = filtered.Where(r => r.Status == "ACTIVE");
+                }
+                else if (normStatus == "CLOSED" || normStatus == "COMPLETED")
+                {
+                    filtered = filtered.Where(r => r.Status != "ACTIVE");
+                }
+                else if (normStatus == "WIN" || normStatus == "TP")
+                {
+                    filtered = filtered.Where(r => r.Status.StartsWith("HIT_TP"));
+                }
+                else if (normStatus == "LOSS" || normStatus == "SL")
+                {
+                    filtered = filtered.Where(r => r.Status == "HIT_SL");
+                }
+                else
+                {
+                    filtered = filtered.Where(r => r.Status.Equals(normStatus, StringComparison.OrdinalIgnoreCase));
+                }
+            }
 
             var sorted = filtered.OrderByDescending(r => r.StartTime).ToList();
             int total = sorted.Count;
@@ -345,6 +377,120 @@ public class TradeHistoryService : ITradeHistoryService
         return new List<TradeSignalRecord>
         {
             new TradeSignalRecord(
+                Id: "TRD-54CC39",
+                Symbol: "BTCUSDT",
+                SignalAction: "SHORT",
+                Timeframe: "15m",
+                ConfidenceScore: 75,
+                EntryPrice: 80946.41m,
+                StopLoss: 82404.27m,
+                TakeProfit1: 78759.62m,
+                TakeProfit2: 77301.76m,
+                TakeProfit3: 75406.54m,
+                RiskRewardRatio: 2.5m,
+                StartTime: now.AddMinutes(-30),
+                EndTime: null,
+                Status: "ACTIVE",
+                ExitPrice: null,
+                PnlPercent: null,
+                Notes: "Hội tụ 75%: Đồng pha D1/H4 Bearish, cản Bearish Order Block và Bearish FVG, RSI < 50. Đang theo dõi."
+            ),
+            new TradeSignalRecord(
+                Id: "TRD-ETH901",
+                Symbol: "ETHUSDT",
+                SignalAction: "SHORT",
+                Timeframe: "15m",
+                ConfidenceScore: 78,
+                EntryPrice: 2382.50m,
+                StopLoss: 2426.00m,
+                TakeProfit1: 2317.25m,
+                TakeProfit2: 2273.75m,
+                TakeProfit3: 2215.00m,
+                RiskRewardRatio: 2.5m,
+                StartTime: now.AddMinutes(-45),
+                EndTime: null,
+                Status: "ACTIVE",
+                ExitPrice: null,
+                PnlPercent: null,
+                Notes: "Hội tụ 78%: Khung D1/H4 gãy trendline, giá kiểm định Bearish FVG $2,382.50 - $2,390.00, RSI 38.2 dưới EMA50. Đang theo dõi."
+            ),
+            new TradeSignalRecord(
+                Id: "TRD-BNB702",
+                Symbol: "BNBUSDT",
+                SignalAction: "LONG",
+                Timeframe: "15m",
+                ConfidenceScore: 76,
+                EntryPrice: 735.20m,
+                StopLoss: 722.50m,
+                TakeProfit1: 754.25m,
+                TakeProfit2: 766.95m,
+                TakeProfit3: 782.00m,
+                RiskRewardRatio: 2.5m,
+                StartTime: now.AddMinutes(-20),
+                EndTime: null,
+                Status: "ACTIVE",
+                ExitPrice: null,
+                PnlPercent: null,
+                Notes: "Hội tụ 76%: BNB duy trì cấu trúc tăng vững chắc trên D1/H4, phản ứng bật mạnh tại Bullish Order Block $732.00 - $735.20, RSI > 52 phân kỳ tăng. Đang theo dõi."
+            ),
+            new TradeSignalRecord(
+                Id: "TRD-SOL603",
+                Symbol: "SOLUSDT",
+                SignalAction: "SHORT",
+                Timeframe: "15m",
+                ConfidenceScore: 74,
+                EntryPrice: 102.80m,
+                StopLoss: 104.90m,
+                TakeProfit1: 99.65m,
+                TakeProfit2: 97.55m,
+                TakeProfit3: 94.80m,
+                RiskRewardRatio: 2.5m,
+                StartTime: now.AddMinutes(-50),
+                EndTime: null,
+                Status: "ACTIVE",
+                ExitPrice: null,
+                PnlPercent: null,
+                Notes: "Hội tụ 74%: Giá bị từ chối mạnh tại Bearish Order Block M15 ($103.40), RSI 36.5 tiếp tục xu hướng giảm. Đang theo dõi."
+            ),
+            new TradeSignalRecord(
+                Id: "TRD-NEAR501",
+                Symbol: "NEARUSDT",
+                SignalAction: "SHORT",
+                Timeframe: "15m",
+                ConfidenceScore: 77,
+                EntryPrice: 4.685m,
+                StopLoss: 4.815m,
+                TakeProfit1: 4.490m,
+                TakeProfit2: 4.360m,
+                TakeProfit3: 4.200m,
+                RiskRewardRatio: 2.5m,
+                StartTime: now.AddMinutes(-35),
+                EndTime: null,
+                Status: "ACTIVE",
+                ExitPrice: null,
+                PnlPercent: null,
+                Notes: "Hội tụ 77%: Thủng đáy phiên Á tại $4.70 tạo Bearish BOS, kiểm tra lại vùng Bearish FVG $4.685. Khối lượng xả lớn. Đang theo dõi."
+            ),
+            new TradeSignalRecord(
+                Id: "TRD-895089",
+                Symbol: "BTCUSDT",
+                SignalAction: "SHORT",
+                Timeframe: "15m",
+                ConfidenceScore: 75,
+                EntryPrice: 80946.41m,
+                StopLoss: 82352.86m,
+                TakeProfit1: 78836.74m,
+                TakeProfit2: 77430.28m,
+                TakeProfit3: 75601.90m,
+                RiskRewardRatio: 2.5m,
+                StartTime: now.AddHours(-1),
+                EndTime: now.AddMinutes(-20),
+                Status: "HIT_SL",
+                ExitPrice: 82352.86m,
+                PnlPercent: -1.74m,
+                Notes: "Dính SL tại $82,352.86. Lỗ: -1.74% (Tuân thủ kỷ luật cắt lỗ bảo toàn vốn)."
+            ),
+            new TradeSignalRecord(
                 Id: "TRD-BTC801",
                 Symbol: "BTCUSDT",
                 SignalAction: "LONG",
@@ -383,6 +529,25 @@ public class TradeHistoryService : ITradeHistoryService
                 Notes: "Chạm vùng kháng cự Bearish FVG trên H1 và phân kỳ giảm RSI. Đạt chốt lời TP1 an toàn (+4.11%)."
             ),
             new TradeSignalRecord(
+                Id: "TRD-SOL202",
+                Symbol: "SOLUSDT",
+                SignalAction: "SHORT",
+                Timeframe: "1h",
+                ConfidenceScore: 79,
+                EntryPrice: 115.00m,
+                StopLoss: 118.50m,
+                TakeProfit1: 110.25m,
+                TakeProfit2: 108.50m,
+                TakeProfit3: 105.00m,
+                RiskRewardRatio: 2.5m,
+                StartTime: now.AddDays(-2).AddHours(-6),
+                EndTime: now.AddDays(-1).AddHours(-18),
+                Status: "HIT_TP2",
+                ExitPrice: 108.50m,
+                PnlPercent: 5.65m,
+                Notes: "Mô hình Bearish Quasimodo (QML) giảm giá trên H1 kết hợp phân kỳ âm RSI. Đã chốt lời TP2 thành công (+5.65%)."
+            ),
+            new TradeSignalRecord(
                 Id: "TRD-SOL305",
                 Symbol: "SOLUSDT",
                 SignalAction: "LONG",
@@ -419,6 +584,25 @@ public class TradeHistoryService : ITradeHistoryService
                 ExitPrice: 618.25m,
                 PnlPercent: 4.43m,
                 Notes: "D1/H4 Golden Cross EMA20/50, nến BOS tăng rõ nét. Chốt lời TP2 xuất sắc (+4.43%)."
+            ),
+            new TradeSignalRecord(
+                Id: "TRD-NEAR201",
+                Symbol: "NEARUSDT",
+                SignalAction: "LONG",
+                Timeframe: "15m",
+                ConfidenceScore: 81,
+                EntryPrice: 4.850m,
+                StopLoss: 4.710m,
+                TakeProfit1: 5.120m,
+                TakeProfit2: 5.280m,
+                TakeProfit3: 5.450m,
+                RiskRewardRatio: 2.5m,
+                StartTime: now.AddDays(-3),
+                EndTime: now.AddDays(-2).AddHours(-10),
+                Status: "HIT_TP1",
+                ExitPrice: 5.120m,
+                PnlPercent: 5.57m,
+                Notes: "Hội tụ 81% D1/H4 Bullish, breakout cản chéo và retest FVG $4.85 thành công. Chốt lời TP1 chuẩn xác (+5.57%)."
             )
         };
     }

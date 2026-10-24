@@ -1318,6 +1318,82 @@ $text-muted: #848e9c;
         }
       }
 
+      .journal-filter-box {
+        background: rgba(14, 18, 26, 0.65);
+        border: 1px solid $card-border;
+        border-radius: 8px;
+        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        .filter-row {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+
+          .filter-row-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: $text-muted;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+
+          .filter-pill-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+
+            .filter-btn {
+              background: rgba(255, 255, 255, 0.04);
+              border: 1px solid rgba(255, 255, 255, 0.08);
+              color: $text-muted;
+              font-size: 0.76rem;
+              font-weight: 700;
+              font-family: 'JetBrains Mono', monospace;
+              padding: 5px 12px;
+              border-radius: 5px;
+              cursor: pointer;
+              transition: all 0.2s;
+
+              &:hover {
+                color: #fff;
+                border-color: rgba(240, 185, 11, 0.4);
+              }
+
+              &.active {
+                background: rgba(240, 185, 11, 0.16);
+                color: $accent-yellow;
+                border-color: rgba(240, 185, 11, 0.5);
+              }
+
+              &.cyan-btn.active {
+                background: rgba(0, 229, 255, 0.18);
+                color: #00e5ff;
+                border-color: rgba(0, 229, 255, 0.6);
+                box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+              }
+
+              &.green-btn.active {
+                background: rgba(14, 203, 129, 0.18);
+                color: $green;
+                border-color: rgba(14, 203, 129, 0.5);
+              }
+
+              &.red-btn.active {
+                background: rgba(246, 70, 93, 0.18);
+                color: $red;
+                border-color: rgba(246, 70, 93, 0.5);
+              }
+            }
+          }
+        }
+      }
+
       .journal-stats-grid {
         display: grid;
         grid-template-columns: repeat(6, 1fr);

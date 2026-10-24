@@ -571,15 +571,62 @@
             Bảng Lưu Trữ Lịch Sử Lệnh & Giám Sát Kết Quả (Entry - SL - TP Journal)
           </h2>
           <div class="journal-controls">
-            <button class="filter-btn" [class.active]="journalFilterMode() === 'all'" (click)="setJournalFilter('all')">
-              Tất Cả Coin
-            </button>
-            <button class="filter-btn" [class.active]="journalFilterMode() === 'current'" (click)="setJournalFilter('current')">
-              Chỉ Xem {{ selectedSymbol() }}
-            </button>
             <button class="btn-refresh-icon" (click)="loadTradeHistory()" title="Cập nhật nhật ký">
-              ↺
+              ↺ Làm Mới
             </button>
+          </div>
+        </div>
+
+        <!-- JOURNAL MULTI-FILTER BAR (COIN & STATUS) -->
+        <div class="journal-filter-box">
+          <!-- ROW 1: SELECT COIN (BTC, BNB, ETH, SOL, NEAR) -->
+          <div class="filter-row">
+            <span class="filter-row-title">🪙 Xem Lệnh Theo Coin:</span>
+            <div class="filter-pill-group">
+              <button class="filter-btn" [class.active]="journalCoinFilter() === 'all'" (click)="setJournalCoinFilter('all')">
+                🌐 Tất Cả Coin
+              </button>
+              <button class="filter-btn" [class.active]="journalCoinFilter() === 'BTC'" (click)="setJournalCoinFilter('BTC')">
+                ⚡ BTC (Bitcoin)
+              </button>
+              <button class="filter-btn" [class.active]="journalCoinFilter() === 'ETH'" (click)="setJournalCoinFilter('ETH')">
+                💎 ETH (Ethereum)
+              </button>
+              <button class="filter-btn" [class.active]="journalCoinFilter() === 'BNB'" (click)="setJournalCoinFilter('BNB')">
+                🟡 BNB (BNB Chain)
+              </button>
+              <button class="filter-btn" [class.active]="journalCoinFilter() === 'SOL'" (click)="setJournalCoinFilter('SOL')">
+                🟣 SOL (Solana)
+              </button>
+              <button class="filter-btn" [class.active]="journalCoinFilter() === 'NEAR'" (click)="setJournalCoinFilter('NEAR')">
+                🟢 NEAR (Protocol)
+              </button>
+              <button class="filter-btn" [class.active]="journalCoinFilter() === 'current'" (click)="setJournalCoinFilter('current')">
+                🎯 Chỉ Xem {{ selectedSymbol() }}
+              </button>
+            </div>
+          </div>
+
+          <!-- ROW 2: SELECT STATUS (ĐANG CHẠY / ĐÃ CHẠY XONG) -->
+          <div class="filter-row" style="margin-top:6px;">
+            <span class="filter-row-title">📊 Trạng Thái Vị Thế:</span>
+            <div class="filter-pill-group">
+              <button class="filter-btn" [class.active]="journalStatusFilter() === 'all'" (click)="setJournalStatusFilter('all')">
+                Toàn Bộ Lệnh
+              </button>
+              <button class="filter-btn cyan-btn" [class.active]="journalStatusFilter() === 'ACTIVE'" (click)="setJournalStatusFilter('ACTIVE')">
+                ⏳ Lệnh Đang Chạy ({{ th.activeTrades }})
+              </button>
+              <button class="filter-btn" [class.active]="journalStatusFilter() === 'CLOSED'" (click)="setJournalStatusFilter('CLOSED')">
+                ✅ Đã Chạy Xong (Chạm SL / TP)
+              </button>
+              <button class="filter-btn green-btn" [class.active]="journalStatusFilter() === 'WIN'" (click)="setJournalStatusFilter('WIN')">
+                🎯 Thắng (Chốt Lời TP)
+              </button>
+              <button class="filter-btn red-btn" [class.active]="journalStatusFilter() === 'LOSS'" (click)="setJournalStatusFilter('LOSS')">
+                🛑 Thua (Cắt Lỗ SL)
+              </button>
+            </div>
           </div>
         </div>
 

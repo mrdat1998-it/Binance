@@ -1018,6 +1018,85 @@
 
     /* DAILY BIAS MULTI-TIMEFRAME STYLES */
     /* TRADE JOURNAL & SL/TP HISTORY STYLES */
+    .journal-filters-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+      background: rgba(14, 18, 26, 0.65);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+    }
+    .journal-filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .journal-filter-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .journal-btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-jfilter {
+      background: rgba(255, 255, 255, 0.04);
+      color: #848e9c;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 5px 12px;
+      border-radius: 5px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+    .btn-jfilter:hover {
+      border-color: rgba(240, 185, 11, 0.4);
+      color: #fff;
+    }
+    .btn-jfilter.active {
+      background: rgba(240, 185, 11, 0.16);
+      color: var(--accent-yellow);
+      border-color: rgba(240, 185, 11, 0.5);
+    }
+    .btn-jstatus.active[data-status="ACTIVE"] {
+      background: rgba(0, 229, 255, 0.18);
+      color: #00e5ff;
+      border-color: rgba(0, 229, 255, 0.6);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+    }
+    .btn-jstatus.active[data-status="CLOSED"] {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+    .btn-jstatus.active[data-status="WIN"] {
+      background: rgba(14, 203, 129, 0.18);
+      color: var(--green);
+      border-color: rgba(14, 203, 129, 0.5);
+    }
+    .btn-jstatus.active[data-status="LOSS"] {
+      background: rgba(246, 70, 93, 0.18);
+      color: var(--red);
+      border-color: rgba(246, 70, 93, 0.5);
+    }
+
     .journal-stats-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
@@ -1897,15 +1976,66 @@
           Bảng Lưu Trữ Lịch Sử Lệnh & Giám Sát Kết Quả (Entry - SL - TP Journal)
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
-          <button class="btn-refresh" id="btn-journal-filter-all" onclick="filterJournal('all')" style="background:var(--card-border); color:#fff; border:none; padding:4px 10px; border-radius:4px; font-size:0.75rem; cursor:pointer;">
-            Tất Cả Coin
+          <button class="btn-refresh" onclick="loadTradeHistory()" title="Cập nhật nhật ký" style="background:rgba(255,255,255,0.06); color:#fff; border:1px solid rgba(255,255,255,0.15); padding:5px 10px; border-radius:5px; font-size:0.75rem; cursor:pointer; font-weight:600;">
+            ↺ Làm Mới
           </button>
-          <button class="btn-refresh" id="btn-journal-filter-curr" onclick="filterJournal('current')" style="background:transparent; color:#848e9c; border:1px solid rgba(255,255,255,0.1); padding:4px 10px; border-radius:4px; font-size:0.75rem; cursor:pointer;">
-            Chỉ Xem <span id="journal-curr-sym">BTCUSDT</span>
-          </button>
-          <button class="btn-refresh" onclick="loadTradeHistory()" title="Cập nhật lịch sử" style="background:rgba(255,255,255,0.05); color:#848e9c; border:1px solid rgba(255,255,255,0.1); padding:4px 8px; border-radius:4px; font-size:0.75rem; cursor:pointer;">
-            ↺
-          </button>
+        </div>
+      </div>
+
+      <!-- FILTER CONTROLS BAR: COIN SELECTION & STATUS SELECTION -->
+      <div class="journal-filters-bar">
+        <!-- ROW 1: COIN SELECTION -->
+        <div class="journal-filter-row">
+          <div class="journal-filter-label">
+            <span>🪙 Chọn Coin Xem Lệnh:</span>
+          </div>
+          <div class="journal-btn-group" id="journal-coin-buttons">
+            <button class="btn-jfilter btn-jcoin active" data-coin="all" onclick="setJournalCoinFilter('all')">
+              🌐 Tất Cả Coin
+            </button>
+            <button class="btn-jfilter btn-jcoin" data-coin="BTC" onclick="setJournalCoinFilter('BTC')">
+              ⚡ BTC (Bitcoin)
+            </button>
+            <button class="btn-jfilter btn-jcoin" data-coin="ETH" onclick="setJournalCoinFilter('ETH')">
+              💎 ETH (Ethereum)
+            </button>
+            <button class="btn-jfilter btn-jcoin" data-coin="BNB" onclick="setJournalCoinFilter('BNB')">
+              🟡 BNB (BNB Chain)
+            </button>
+            <button class="btn-jfilter btn-jcoin" data-coin="SOL" onclick="setJournalCoinFilter('SOL')">
+              🟣 SOL (Solana)
+            </button>
+            <button class="btn-jfilter btn-jcoin" data-coin="NEAR" onclick="setJournalCoinFilter('NEAR')">
+              🟢 NEAR (Protocol)
+            </button>
+            <button class="btn-jfilter btn-jcoin" data-coin="current" onclick="setJournalCoinFilter('current')">
+              🎯 Chỉ Xem <span id="journal-curr-sym">BTCUSDT</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ROW 2: STATUS SELECTION (ĐANG CHẠY / ĐÃ CHẠY XONG) -->
+        <div class="journal-filter-row" style="margin-top:4px;">
+          <div class="journal-filter-label">
+            <span>📊 Lọc Trạng Thái Lệnh:</span>
+          </div>
+          <div class="journal-btn-group" id="journal-status-buttons">
+            <button class="btn-jfilter btn-jstatus active" data-status="all" onclick="setJournalStatusFilter('all')">
+              Toàn Bộ Lệnh
+            </button>
+            <button class="btn-jfilter btn-jstatus" data-status="ACTIVE" onclick="setJournalStatusFilter('ACTIVE')">
+              ⏳ Lệnh Đang Chạy (<span id="filter-cnt-active">--</span>)
+            </button>
+            <button class="btn-jfilter btn-jstatus" data-status="CLOSED" onclick="setJournalStatusFilter('CLOSED')">
+              ✅ Đã Chạy Xong (Chạm SL / TP)
+            </button>
+            <button class="btn-jfilter btn-jstatus" data-status="WIN" onclick="setJournalStatusFilter('WIN')">
+              🎯 Thắng (Chốt Lời TP)
+            </button>
+            <button class="btn-jfilter btn-jstatus" data-status="LOSS" onclick="setJournalStatusFilter('LOSS')">
+              🛑 Thua (Cắt Lỗ SL)
+            </button>
+          </div>
         </div>
       </div>
 
@@ -3308,12 +3438,27 @@
     }
 
     // TRADE JOURNAL (LỊCH SỬ LỆNH & GIÁM SÁT SL/TP)
-    let journalFilterMode = 'all'; // 'all' or 'current'
+    let journalCoinFilter = 'all'; // 'all', 'BTC', 'ETH', 'BNB', 'SOL', 'NEAR', 'current'
+    let journalStatusFilter = 'all'; // 'all', 'ACTIVE', 'CLOSED', 'WIN', 'LOSS'
 
     async function loadTradeHistory() {
       try {
-        const symParam = journalFilterMode === 'current' ? `?symbol=${currentSymbol}` : '';
-        const res = await fetch(`${API_BASE}/futures/history${symParam}`);
+        let symParam = '';
+        if (journalCoinFilter === 'current') {
+          symParam = `symbol=${currentSymbol}`;
+        } else if (journalCoinFilter !== 'all') {
+          symParam = `symbol=${journalCoinFilter}`;
+        }
+
+        let statParam = '';
+        if (journalStatusFilter !== 'all') {
+          statParam = `status=${journalStatusFilter}`;
+        }
+
+        const queryParams = [symParam, statParam].filter(Boolean).join('&');
+        const url = `${API_BASE}/futures/history${queryParams ? '?' + queryParams : ''}`;
+
+        const res = await fetch(url);
         if (!res.ok) return;
         const data = await res.json();
         renderTradeHistory(data);
@@ -3322,28 +3467,26 @@
       }
     }
 
-    function filterJournal(mode) {
-      journalFilterMode = mode;
-      const btnAll = document.getElementById('btn-journal-filter-all');
-      const btnCurr = document.getElementById('btn-journal-filter-curr');
-      if (btnAll && btnCurr) {
-        if (mode === 'all') {
-          btnAll.style.background = 'var(--card-border)';
-          btnAll.style.color = '#fff';
-          btnAll.style.border = 'none';
-          btnCurr.style.background = 'transparent';
-          btnCurr.style.color = '#848e9c';
-          btnCurr.style.border = '1px solid rgba(255,255,255,0.1)';
-        } else {
-          btnCurr.style.background = 'rgba(240,185,11,0.15)';
-          btnCurr.style.color = 'var(--accent-yellow)';
-          btnCurr.style.border = '1px solid rgba(240,185,11,0.3)';
-          btnAll.style.background = 'transparent';
-          btnAll.style.color = '#848e9c';
-          btnAll.style.border = '1px solid rgba(255,255,255,0.1)';
-        }
-      }
+    function setJournalCoinFilter(coin) {
+      journalCoinFilter = coin;
+      document.querySelectorAll('.btn-jcoin').forEach(b => {
+        b.classList.remove('active');
+        if (b.getAttribute('data-coin') === coin) b.classList.add('active');
+      });
       loadTradeHistory();
+    }
+
+    function setJournalStatusFilter(status) {
+      journalStatusFilter = status;
+      document.querySelectorAll('.btn-jstatus').forEach(b => {
+        b.classList.remove('active');
+        if (b.getAttribute('data-status') === status) b.classList.add('active');
+      });
+      loadTradeHistory();
+    }
+
+    function filterJournal(mode) {
+      setJournalCoinFilter(mode);
     }
 
     function renderTradeHistory(data) {
@@ -3355,8 +3498,10 @@
       const elWinRate = document.getElementById('jstat-winrate');
       const elPnl = document.getElementById('jstat-pnl');
       const currSymEl = document.getElementById('journal-curr-sym');
+      const activeCntEl = document.getElementById('filter-cnt-active');
 
       if (currSymEl) currSymEl.innerText = currentSymbol;
+      if (activeCntEl) activeCntEl.innerText = data.activeTrades;
       if (elTotal) elTotal.innerText = data.totalTrades;
       if (elActive) elActive.innerText = data.activeTrades;
       if (elWin) elWin.innerText = data.winTrades;

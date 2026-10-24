@@ -48,9 +48,11 @@ public class FuturesController : ControllerBase
     }
 
     [HttpGet("history")]
-    public async Task<ActionResult<TradeHistorySummary>> GetTradeHistory([FromQuery] string? symbol = null)
+    public async Task<ActionResult<TradeHistorySummary>> GetTradeHistory(
+        [FromQuery] string? symbol = null,
+        [FromQuery] string? status = null)
     {
-        var history = await _tradeHistoryService.GetHistorySummaryAsync(symbol);
+        var history = await _tradeHistoryService.GetHistorySummaryAsync(symbol, status);
         return Ok(history);
     }
 

@@ -39,9 +39,12 @@ export class CryptoApiService {
     return this.http.get<FuturesAnalysis>(`${this.baseUrl}/futures/${symbol}?interval=${interval}`);
   }
 
-  getTradeHistory(symbol?: string): Observable<TradeHistorySummary> {
-    const url = symbol ? `${this.baseUrl}/futures/history?symbol=${symbol}` : `${this.baseUrl}/futures/history`;
-    return this.http.get<TradeHistorySummary>(url);
+  getTradeHistory(symbol?: string, status?: string): Observable<TradeHistorySummary> {
+    const params: string[] = [];
+    if (symbol && symbol !== 'all') params.push(`symbol=${encodeURIComponent(symbol)}`);
+    if (status && status !== 'all') params.push(`status=${encodeURIComponent(status)}`);
+    const query = params.length > 0 ? `?${params.join('&')}` : '';
+    return this.http.get<TradeHistorySummary>(`${this.baseUrl}/futures/history${query}`);
   }
 
   // Real-time tick-by-tick Binance WebSocket Stream
