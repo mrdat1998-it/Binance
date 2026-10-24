@@ -1,5 +1,24 @@
 [
   {
+    "Id": "TRD-54CC39",
+    "Symbol": "BTCUSDT",
+    "SignalAction": "SHORT",
+    "Timeframe": "15m",
+    "ConfidenceScore": 75,
+    "EntryPrice": 80946.41,
+    "StopLoss": 82404.27,
+    "TakeProfit1": 78759.62,
+    "TakeProfit2": 77301.76,
+    "TakeProfit3": 75406.54,
+    "RiskRewardRatio": 2.5,
+    "StartTime": "2026-10-24T01:04:37.408617Z",
+    "EndTime": null,
+    "Status": "ACTIVE",
+    "ExitPrice": null,
+    "PnlPercent": null,
+    "Notes": "H\u1ED9i t\u1EE5 75% (\u003E70% ti\u00EAu chu\u1EA9n): 1) \u0110\u1ED3ng pha \u0111a khung D1/H4 (BEARISH/BEARISH), 2) \u00C1p l\u1EF1c b\u00E1n d\u01B0\u1EDBi EMA50 (81,283.22), 3) Ch\u1EA1m c\u1EA3n Bearish Order Block (Kh\u1ED1i l\u1EC7nh \u0111\u00E8 phe B\u00E1n) v\u00E0 Bearish FVG (80,855.25 - 80,946.41), 4) \u0110\u1ED9ng l\u01B0\u1EE3ng Y\u1EBFu (RSI \u003C 50 - Phe g\u1EA5u ki\u1EC3m so\u00E1t) Kh\u00F4ng ph\u00E1t hi\u1EC7n ph\u00E2n k\u1EF3."
+  },
+  {
     "Id": "TRD-895089",
     "Symbol": "BTCUSDT",
     "SignalAction": "SHORT",
@@ -12,11 +31,11 @@
     "TakeProfit3": 75601.90,
     "RiskRewardRatio": 2.5,
     "StartTime": "2026-10-24T00:43:26.6622218Z",
-    "EndTime": null,
-    "Status": "ACTIVE",
-    "ExitPrice": null,
-    "PnlPercent": null,
-    "Notes": "H\u1ED9i t\u1EE5 75% (\u003E70% ti\u00EAu chu\u1EA9n): 1) \u0110\u1ED3ng pha \u0111a khung D1/H4 (BEARISH/BEARISH), 2) \u00C1p l\u1EF1c b\u00E1n d\u01B0\u1EDBi EMA50 (81,335.03), 3) Ch\u1EA1m c\u1EA3n Bearish Order Block (Kh\u1ED1i l\u1EC7nh \u0111\u00E8 phe B\u00E1n) v\u00E0 Bearish FVG (80,855.25 - 80,946.41), 4) Qu\u00E1 b\u00E1n (RSI \u003C 30 - V\u00F9ng n\u00E9n gi\u00E1 b\u1EADt h\u1ED3i cao) Kh\u00F4ng ph\u00E1t hi\u1EC7n ph\u00E2n k\u1EF3."
+    "EndTime": "2026-10-24T01:04:37.4032332Z",
+    "Status": "HIT_SL",
+    "ExitPrice": 82352.86,
+    "PnlPercent": -1.74,
+    "Notes": "D\u00EDnh SL t\u1EA1i $82,352.86. L\u1ED7: -1.74% (Tu\u00E2n th\u1EE7 k\u1EF7 lu\u1EADt c\u1EAFt l\u1ED7 b\u1EA3o to\u00E0n v\u1ED1n)."
   },
   {
     "Id": "TRD-BTC801",

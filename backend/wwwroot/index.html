@@ -860,6 +860,13 @@
       border: 1px solid rgba(246, 70, 93, 0.4);
     }
 
+    .ft-action-holding {
+      background: rgba(0, 229, 255, 0.18);
+      color: #00e5ff;
+      border: 1px solid rgba(0, 229, 255, 0.5);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+    }
+
     .ft-action-neutral {
       background: rgba(240, 185, 11, 0.15);
       color: var(--accent-yellow);
@@ -2511,8 +2518,9 @@
           ctx.fillText(`FVG Gap: ${formatPriceLabel(currentIctSetup.fvgLow)} - ${formatPriceLabel(currentIctSetup.fvgHigh)}`, paddingLeft + 12, fvgTop + 13);
         }
 
-        // 3. Trade Setup Levels (Entry, SL, TP1, TP2) - CHỈ KÍCH HOẠT VẼ KHI ĐẠT CHUẨN > 70%
-        if (currentIctSetup.optimalEntry > 0 && currentIctSetup.confidenceScore > 70) {
+        // 3. Trade Setup Levels (Entry, SL, TP1, TP2) - KÍCH HOẠT VẼ KHI ĐẠT CHUẨN > 70% HOẶC ĐANG GIỮ LỆNH ACTIVE
+        const isHoldingTrade = (currentIctSetup.setupAction || '').includes('GIỮ VỊ THẾ') || (currentIctSetup.setupAction || '').includes('ĐANG CHẠY');
+        if (currentIctSetup.optimalEntry > 0 && (currentIctSetup.confidenceScore > 70 || isHoldingTrade)) {
           const entryY = priceToY(currentIctSetup.optimalEntry);
           drawTradeLevelLine(ctx, entryY, '#00e5ff', `ENTRY: ${formatCurrency(currentIctSetup.optimalEntry)}`, paddingLeft, width - paddingRight);
 
@@ -2529,6 +2537,15 @@
           if (currentIctSetup.takeProfit2 > 0) {
             const tp2Y = priceToY(currentIctSetup.takeProfit2);
             drawTradeLevelLine(ctx, tp2Y, '#0ecb81', `TP2: ${formatCurrency(currentIctSetup.takeProfit2)}`, paddingLeft, width - paddingRight);
+          }
+
+          if (isHoldingTrade) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(0, 229, 255, 0.9)';
+            ctx.font = 'bold 11px JetBrains Mono';
+            ctx.textAlign = 'right';
+            ctx.fillText(`[⏳ ĐANG GIỮ LỆNH ACTIVE • THEO DÕI TP/SL • KHÔNG MỞ THÊM LỆNH]`, width - paddingRight - 10, paddingTop + 20);
+            ctx.restore();
           }
         } else if (currentIctSetup && currentIctSetup.confidenceScore <= 70) {
           ctx.save();
@@ -3182,12 +3199,15 @@
         if (ft.ictSetup) {
           currentIctSetup = ft.ictSetup;
 
-          const isHighConfidence = ft.ictSetup.confidenceScore > 70 && ft.ictSetup.optimalEntry > 0;
+          const isHolding = (ft.ictSetup.setupAction || '').includes('GIỮ VỊ THẾ') || (ft.ictSetup.setupAction || '').includes('ĐANG CHẠY');
+          const isHighConfidence = isHolding || (ft.ictSetup.confidenceScore > 70 && ft.ictSetup.optimalEntry > 0);
 
           const badgeEl = document.getElementById('ict-setup-badge');
           if (badgeEl) {
             badgeEl.innerText = ft.ictSetup.setupAction;
-            if (isHighConfidence) {
+            if (isHolding) {
+              badgeEl.className = 'ft-action-badge ft-action-holding';
+            } else if (isHighConfidence) {
               if (ft.ictSetup.setupAction.includes('LONG')) {
                 badgeEl.className = 'ft-action-badge ft-action-long';
               } else {
@@ -3200,7 +3220,9 @@
 
           const confEl = document.getElementById('ict-conf-score');
           if (confEl) {
-            confEl.innerText = `Độ tin cậy: ${ft.ictSetup.confidenceScore}% (${currentInterval.toUpperCase()})`;
+            confEl.innerText = isHolding 
+              ? `Vị thế đang chạy: ${ft.ictSetup.confidenceScore}% (${currentInterval.toUpperCase()})` 
+              : `Độ tin cậy: ${ft.ictSetup.confidenceScore}% (${currentInterval.toUpperCase()})`;
             confEl.style.color = isHighConfidence ? 'var(--green)' : 'var(--accent-yellow)';
           }
 
@@ -3211,7 +3233,7 @@
           }
 
           const levEl = document.getElementById('ict-rec-lev');
-          if (levEl) levEl.innerText = ft.ictSetup.leverageRule || '5x - 10x Isolated';
+          if (levEl) levEl.innerText = isHolding ? 'Giữ nguyên đòn bẩy ban đầu' : (ft.ictSetup.leverageRule || '5x - 10x Isolated');
 
           const entryEl = document.getElementById('ict-optimal-entry');
           if (entryEl) entryEl.innerText = isHighConfidence ? formatCurrency(ft.ictSetup.optimalEntry) : 'Chờ đủ điều kiện (>70%)';

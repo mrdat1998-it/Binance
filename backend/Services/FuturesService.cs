@@ -8,11 +8,13 @@ public class FuturesService : IFuturesService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<FuturesService> _logger;
+    private readonly ITradeHistoryService _tradeHistoryService;
 
-    public FuturesService(HttpClient httpClient, ILogger<FuturesService> logger)
+    public FuturesService(HttpClient httpClient, ILogger<FuturesService> logger, ITradeHistoryService tradeHistoryService)
     {
         _httpClient = httpClient;
         _logger = logger;
+        _tradeHistoryService = tradeHistoryService;
         _httpClient.BaseAddress = new Uri("https://fapi.binance.com");
         _httpClient.Timeout = TimeSpan.FromSeconds(6);
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "BinanceTrackerFutures/1.0");
@@ -167,6 +169,67 @@ public class FuturesService : IFuturesService
 
         // 4. PERFORM ICT + RSI + EMA COMPREHENSIVE ANALYSIS ON SELECTED TIMEFRAME WITH DAILY BIAS CONFLUENCE
         var ictSetup = AnalyzeIctRsiEma(markPrice, klines ?? new List<KlineCandle>(), dailyBias);
+
+        // 5. QUY TẮC CỐT LÕI: ĐÃ ĐƯA RA LỆNH THÌ TRONG KHI LỆNH CHƯA XONG THÌ KHÔNG PHÁT THÊM LỆNH!
+        // Nếu coin này đang có lệnh ACTIVE (chưa chạm SL hay TP), hệ thống giữ nguyên vị thế và thông số lệnh đó.
+        var activeTrade = await _tradeHistoryService.GetActiveSignalAsync(normSymbol);
+        if (activeTrade != null)
+        {
+            string actAction = activeTrade.SignalAction;
+            string signalAction = $"⏳ GIỮ VỊ THẾ {actAction} (ĐANG CHẠY - THEO DÕI TP/SL)";
+            string setupAction = $"GIỮ VỊ THẾ {actAction} (ĐANG CHẠY)";
+            string activeEntryDisplay = $"{formatNum(activeTrade.EntryPrice)} USDT (Vào: {activeTrade.StartTime.ToLocalTime():HH:mm dd/MM})";
+            string activeRrDisplay = $"1 : {activeTrade.RiskRewardRatio:N1}";
+            string activeNotes = $"LỆNH HIỆN TẠI ĐANG CHẠY: Vị thế {actAction} mở tại ${activeTrade.EntryPrice:N2} lúc {activeTrade.StartTime.ToLocalTime():HH:mm dd/MM}. Lệnh đang chạy và chưa chạm SL (${activeTrade.StopLoss:N2}) hay TP1 (${activeTrade.TakeProfit1:N2}). Hệ thống KHÓA KHÔNG PHÁT LỆNH MỚI cho đến khi lệnh này kết thúc để đảm bảo kỷ luật quản trị vốn.";
+
+            ictSetup = ictSetup with
+            {
+                SetupAction = setupAction,
+                ConfidenceScore = activeTrade.ConfidenceScore,
+                OptimalEntry = activeTrade.EntryPrice,
+                StopLoss = activeTrade.StopLoss,
+                TakeProfit1 = activeTrade.TakeProfit1,
+                TakeProfit2 = activeTrade.TakeProfit2,
+                TakeProfit3 = activeTrade.TakeProfit3,
+                RiskRewardRatio = activeTrade.RiskRewardRatio,
+                LeverageRule = "Giữ vị thế hiện tại (Không mở thêm lệnh)",
+                RiskManagementAdvice = "Kỷ luật 1 lệnh/coin: Đang có lệnh active thì tuyệt đối không vào thêm lệnh mới cho đến khi dính SL hoặc chạm TP."
+            };
+
+            return new FuturesAnalysis(
+                Symbol: normSymbol,
+                MarkPrice: markPrice,
+                IndexPrice: indexPrice,
+                PriceBasis: basis,
+                FundingRate: fundingRate,
+                FundingRatePercent: fundingRatePercent,
+                AnnualizedFundingRate: annualizedFunding,
+                FundingSentiment: fundingSentiment,
+                NextFundingTime: nextFundingTime,
+                LongAccountPercent: Math.Round(longAccount * 100m, 1),
+                ShortAccountPercent: Math.Round(shortAccount * 100m, 1),
+                LongShortRatio: Math.Round(longShortRatio, 2),
+                LongShortSentiment: lsSentiment,
+                OpenInterestCoin: Math.Round(openInterestCoin, 2),
+                OpenInterestUsd: oiUsd,
+                OpenInterestInterpretation: oiDesc,
+                LongLiquidationCluster: longLiqCluster,
+                ShortLiquidationCluster: shortLiqCluster,
+                LiquidationMapSummary: liqSummary,
+                SignalAction: signalAction,
+                EntryZone: activeEntryDisplay,
+                TakeProfit1: activeTrade.TakeProfit1,
+                TakeProfit2: activeTrade.TakeProfit2,
+                TakeProfit3: activeTrade.TakeProfit3,
+                StopLoss: activeTrade.StopLoss,
+                RecommendedLeverage: "Giữ vị thế hiện tại (Không mở thêm lệnh)",
+                RiskRewardRatio: activeRrDisplay,
+                TradingNotes: activeNotes,
+                IctSetup: ictSetup,
+                DailyBias: dailyBias,
+                SelectedInterval: interval
+            );
+        }
 
         string entryDisplay = ictSetup.OptimalEntry > 0 ? $"{formatNum(ictSetup.OptimalEntry)} USDT" : "Chờ hội tụ đủ điều kiện (>70%)";
         string rrDisplay = ictSetup.RiskRewardRatio > 0 ? $"1 : {ictSetup.RiskRewardRatio:N1}" : "Chưa kích hoạt";

@@ -100,6 +100,23 @@ public class TradeHistoryService : ITradeHistoryService
         }
     }
 
+    public async Task<TradeSignalRecord?> GetActiveSignalAsync(string symbol)
+    {
+        var normSymbol = symbol.ToUpperInvariant();
+        if (!normSymbol.EndsWith("USDT")) normSymbol += "USDT";
+
+        await _lock.WaitAsync();
+        try
+        {
+            var records = await LoadRecordsAsync();
+            return records.FirstOrDefault(r => r.Symbol == normSymbol && r.Status == "ACTIVE");
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
     public async Task<TradeSignalRecord?> RecordSignalIfEligibleAsync(string symbol, string interval, IctRsiEmaAnalysis? ict, decimal currentPrice)
     {
         if (ict == null || ict.ConfidenceScore <= 70 || ict.OptimalEntry <= 0)
@@ -118,17 +135,12 @@ public class TradeHistoryService : ITradeHistoryService
         {
             var records = await LoadRecordsAsync();
 
-            // Check if recent active trade already exists for this symbol & action (within last 3 hours and within 0.8% price)
-            var recentActive = records.FirstOrDefault(r =>
-                r.Symbol == normSymbol &&
-                r.SignalAction == action &&
-                r.Status == "ACTIVE" &&
-                (DateTime.UtcNow - r.StartTime).TotalHours < 3 &&
-                Math.Abs(r.EntryPrice - ict.OptimalEntry) / ict.OptimalEntry < 0.008m);
-
-            if (recentActive != null)
+            // NGUYÊN TẮC BẢO TOÀN VỐN CỐT LÕI:
+            // Đã đưa ra lệnh thì trong khi lệnh đó chưa xong (chưa dính SL hay TP) thì KHÔNG được đưa ra thêm lệnh mới!
+            var currentActive = records.FirstOrDefault(r => r.Symbol == normSymbol && r.Status == "ACTIVE");
+            if (currentActive != null)
             {
-                return recentActive; // Don't duplicate active signal
+                return currentActive; // Đang có lệnh chạy, duy trì 1 lệnh duy nhất
             }
 
             var newRecord = new TradeSignalRecord(
@@ -411,3 +423,4 @@ public class TradeHistoryService : ITradeHistoryService
         };
     }
 }
+

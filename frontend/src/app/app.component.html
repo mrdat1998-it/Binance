@@ -388,15 +388,16 @@
                   <span class="conf-badge">Độ tin cậy: {{ ict.confidenceScore }}%</span>
                 </div>
                 <div class="action-badge"
-                     [class.long]="ict.confidenceScore > 70 && ict.setupAction.includes('LONG')"
-                     [class.short]="ict.confidenceScore > 70 && ict.setupAction.includes('SHORT')"
-                     [class.wait]="ict.confidenceScore <= 70 || !ict.setupAction.includes('MỞ VỊ THẾ')">
+                     [class.holding]="ict.setupAction.includes('GIỮ VỊ THẾ') || ict.setupAction.includes('ĐANG CHẠY')"
+                     [class.long]="!ict.setupAction.includes('GIỮ VỊ THẾ') && ict.confidenceScore > 70 && ict.setupAction.includes('LONG')"
+                     [class.short]="!ict.setupAction.includes('GIỮ VỊ THẾ') && ict.confidenceScore > 70 && ict.setupAction.includes('SHORT')"
+                     [class.wait]="!ict.setupAction.includes('GIỮ VỊ THẾ') && (ict.confidenceScore <= 70 || !ict.setupAction.includes('MỞ VỊ THẾ'))">
                   {{ ict.setupAction }}
                 </div>
               </div>
               <div class="signal-metrics">
-                <div>Đòn bẩy: <b>{{ ict.leverageRule }}</b></div>
-                <div>Tỷ lệ R:R: <b class="rr-text">{{ ict.confidenceScore > 70 && ict.riskRewardRatio > 0 ? ('1 : ' + (ict.riskRewardRatio | number:'1.2-2')) : 'Chưa kích hoạt' }}</b></div>
+                <div>Đòn bẩy: <b>{{ ict.setupAction.includes('GIỮ VỊ THẾ') ? 'Giữ nguyên ban đầu' : ict.leverageRule }}</b></div>
+                <div>Tỷ lệ R:R: <b class="rr-text">{{ (ict.confidenceScore > 70 || ict.setupAction.includes('GIỮ VỊ THẾ')) && ict.riskRewardRatio > 0 ? ('1 : ' + (ict.riskRewardRatio | number:'1.2-2')) : 'Chưa kích hoạt' }}</b></div>
               </div>
             </div>
 
@@ -404,27 +405,27 @@
             <div class="signal-levels">
               <div class="lvl-col">
                 <span class="lvl-label">Vùng Entry Tối Ưu</span>
-                <span class="lvl-val entry">{{ ict.confidenceScore > 70 && ict.optimalEntry > 0 ? formatCurrency(ict.optimalEntry) : 'Chờ đủ điều kiện (>70%)' }}</span>
-                <span class="lvl-sub">{{ ict.confidenceScore > 70 ? 'Limit Chờ Test' : 'Chưa vào lệnh' }}</span>
+                <span class="lvl-val entry">{{ (ict.confidenceScore > 70 || ict.setupAction.includes('GIỮ VỊ THẾ')) && ict.optimalEntry > 0 ? formatCurrency(ict.optimalEntry) : 'Chờ đủ điều kiện (>70%)' }}</span>
+                <span class="lvl-sub">{{ ict.setupAction.includes('GIỮ VỊ THẾ') ? 'Đã Vào Lệnh' : (ict.confidenceScore > 70 ? 'Limit Chờ Test' : 'Chưa vào lệnh') }}</span>
               </div>
               <div class="lvl-col">
                 <span class="lvl-label">Dừng Lỗ (Stop Loss)</span>
-                <span class="lvl-val sl">{{ ict.confidenceScore > 70 && ict.stopLoss > 0 ? formatCurrency(ict.stopLoss) : '--' }}</span>
+                <span class="lvl-val sl">{{ (ict.confidenceScore > 70 || ict.setupAction.includes('GIỮ VỊ THẾ')) && ict.stopLoss > 0 ? formatCurrency(ict.stopLoss) : '--' }}</span>
                 <span class="lvl-sub red">Bảo toàn vốn</span>
               </div>
               <div class="lvl-col">
                 <span class="lvl-label">Chốt Lời 1 (TP1 - 50%)</span>
-                <span class="lvl-val tp">{{ ict.confidenceScore > 70 && ict.takeProfit1 > 0 ? formatCurrency(ict.takeProfit1) : '--' }}</span>
+                <span class="lvl-val tp">{{ (ict.confidenceScore > 70 || ict.setupAction.includes('GIỮ VỊ THẾ')) && ict.takeProfit1 > 0 ? formatCurrency(ict.takeProfit1) : '--' }}</span>
                 <span class="lvl-sub">Dời SL về Entry</span>
               </div>
               <div class="lvl-col">
                 <span class="lvl-label">Chốt Lời 2 (TP2 - 30%)</span>
-                <span class="lvl-val tp">{{ ict.confidenceScore > 70 && ict.takeProfit2 > 0 ? formatCurrency(ict.takeProfit2) : '--' }}</span>
+                <span class="lvl-val tp">{{ (ict.confidenceScore > 70 || ict.setupAction.includes('GIỮ VỊ THẾ')) && ict.takeProfit2 > 0 ? formatCurrency(ict.takeProfit2) : '--' }}</span>
                 <span class="lvl-sub">Khóa 80% lợi nhuận</span>
               </div>
               <div class="lvl-col">
                 <span class="lvl-label">Chốt Lời 3 (TP3 - 20%)</span>
-                <span class="lvl-val tp">{{ ict.confidenceScore > 70 && ict.takeProfit3 > 0 ? formatCurrency(ict.takeProfit3) : '--' }}</span>
+                <span class="lvl-val tp">{{ (ict.confidenceScore > 70 || ict.setupAction.includes('GIỮ VỊ THẾ')) && ict.takeProfit3 > 0 ? formatCurrency(ict.takeProfit3) : '--' }}</span>
                 <span class="lvl-sub">Gồng hết sóng lớn</span>
               </div>
             </div>

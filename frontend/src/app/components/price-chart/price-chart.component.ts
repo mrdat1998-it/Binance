@@ -378,8 +378,9 @@ export class PriceChartComponent implements AfterViewInit, OnChanges {
         ctx.fillText(`FVG Gap: $${ict.fvgLow.toLocaleString()} - $${ict.fvgHigh.toLocaleString()}`, paddingLeft + 12, fvgTop + 13);
       }
 
-      // 3. Trade Setup Levels (Entry, SL, TP1, TP2) - CHỈ VẼ KHI HỘI TỤ ĐỦ ĐIỀU KIỆN > 70%
-      if (ict.optimalEntry > 0 && ict.confidenceScore > 70) {
+      // 3. Trade Setup Levels (Entry, SL, TP1, TP2) - VẼ KHI HỘI TỤ ĐỦ ĐIỀU KIỆN > 70% HOẶC ĐANG GIỮ LỆNH ACTIVE
+      const isHolding = (ict.setupAction || '').includes('GIỮ VỊ THẾ') || (ict.setupAction || '').includes('ĐANG CHẠY');
+      if (ict.optimalEntry > 0 && (ict.confidenceScore > 70 || isHolding)) {
         const entryY = priceToY(ict.optimalEntry);
         this.drawTradeLevelLine(ctx, entryY, '#00e5ff', `ENTRY: $${ict.optimalEntry.toLocaleString()}`, paddingLeft, width - paddingRight);
 
@@ -396,6 +397,15 @@ export class PriceChartComponent implements AfterViewInit, OnChanges {
         if (ict.takeProfit2 > 0) {
           const tp2Y = priceToY(ict.takeProfit2);
           this.drawTradeLevelLine(ctx, tp2Y, '#0ecb81', `TP2: $${ict.takeProfit2.toLocaleString()}`, paddingLeft, width - paddingRight);
+        }
+
+        if (isHolding) {
+          ctx.save();
+          ctx.fillStyle = 'rgba(0, 229, 255, 0.9)';
+          ctx.font = 'bold 11px JetBrains Mono';
+          ctx.textAlign = 'right';
+          ctx.fillText(`[⏳ ĐANG GIỮ LỆNH ACTIVE • THEO DÕI TP/SL • KHÔNG MỞ THÊM LỆNH]`, width - paddingRight - 10, paddingTop + 20);
+          ctx.restore();
         }
       } else if (ict.confidenceScore <= 70) {
         ctx.save();
