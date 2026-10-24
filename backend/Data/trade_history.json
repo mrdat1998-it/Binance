@@ -1,5 +1,62 @@
 [
   {
+    "Id": "TRD-AA4A6C",
+    "Symbol": "BTCUSDT",
+    "SignalAction": "SHORT",
+    "Timeframe": "15m",
+    "ConfidenceScore": 76,
+    "EntryPrice": 80764.64,
+    "StopLoss": 82641.18,
+    "TakeProfit1": 77949.83,
+    "TakeProfit2": 76073.29,
+    "TakeProfit3": 73633.79,
+    "RiskRewardRatio": 2.5,
+    "StartTime": "2026-10-24T01:48:55.7564178Z",
+    "EndTime": null,
+    "Status": "ACTIVE",
+    "ExitPrice": null,
+    "PnlPercent": null,
+    "Notes": "H\u1ED9i t\u1EE5 76% (\u003E70% ti\u00EAu chu\u1EA9n): 1) \u0110\u1ED3ng pha \u0111a khung D1/H4 (BEARISH/BEARISH), 2) \u00C1p l\u1EF1c b\u00E1n d\u01B0\u1EDBi EMA50 (81,238.03), 3) Ch\u1EA1m c\u1EA3n Bearish Order Block (Kh\u1ED1i l\u1EC7nh \u0111\u00E8 phe B\u00E1n) v\u00E0 Bearish FVG (80,758.01 - 80,764.64), 4) \u0110\u1ED9ng l\u01B0\u1EE3ng Y\u1EBFu (RSI \u003C 50 - Phe g\u1EA5u ki\u1EC3m so\u00E1t) Kh\u00F4ng ph\u00E1t hi\u1EC7n ph\u00E2n k\u1EF3."
+  },
+  {
+    "Id": "TRD-158EE0",
+    "Symbol": "BTCUSDT",
+    "SignalAction": "SHORT",
+    "Timeframe": "15m",
+    "ConfidenceScore": 76,
+    "EntryPrice": 80764.64,
+    "StopLoss": 82640.28,
+    "TakeProfit1": 77951.18,
+    "TakeProfit2": 76075.54,
+    "TakeProfit3": 73637.21,
+    "RiskRewardRatio": 2.5,
+    "StartTime": "2026-10-24T01:48:50.988455Z",
+    "EndTime": "2026-10-24T01:48:51.9968233Z",
+    "Status": "HIT_SL",
+    "ExitPrice": 82640.28,
+    "PnlPercent": -2.32,
+    "Notes": "D\u00EDnh SL t\u1EA1i $82,640.28. L\u1ED7: -2.32% (Tu\u00E2n th\u1EE7 k\u1EF7 lu\u1EADt c\u1EAFt l\u1ED7 b\u1EA3o to\u00E0n v\u1ED1n)."
+  },
+  {
+    "Id": "TRD-2F58BB",
+    "Symbol": "BTCUSDT",
+    "SignalAction": "SHORT",
+    "Timeframe": "15m",
+    "ConfidenceScore": 76,
+    "EntryPrice": 80764.64,
+    "StopLoss": 82628.80,
+    "TakeProfit1": 77968.40,
+    "TakeProfit2": 76104.24,
+    "TakeProfit3": 73680.83,
+    "RiskRewardRatio": 2.5,
+    "StartTime": "2026-10-24T01:48:25.0589442Z",
+    "EndTime": "2026-10-24T01:48:42.0222836Z",
+    "Status": "HIT_SL",
+    "ExitPrice": 82628.80,
+    "PnlPercent": -2.31,
+    "Notes": "D\u00EDnh SL t\u1EA1i $82,628.80. L\u1ED7: -2.31% (Tu\u00E2n th\u1EE7 k\u1EF7 lu\u1EADt c\u1EAFt l\u1ED7 b\u1EA3o to\u00E0n v\u1ED1n)."
+  },
+  {
     "Id": "TRD-54CC39",
     "Symbol": "BTCUSDT",
     "SignalAction": "SHORT",
@@ -12,11 +69,11 @@
     "TakeProfit3": 75406.54,
     "RiskRewardRatio": 2.5,
     "StartTime": "2026-10-24T01:04:37.408617Z",
-    "EndTime": null,
-    "Status": "ACTIVE",
-    "ExitPrice": null,
-    "PnlPercent": null,
-    "Notes": "Hội tụ 75% (>70% tiêu chuẩn): 1) Đồng pha đa khung D1/H4 (BEARISH/BEARISH), 2) Áp lực bán dưới EMA50 (81,283.22), 3) Chạm cản Bearish Order Block (Khối lệnh đè phe Bán) và Bearish FVG (80,855.25 - 80,946.41), 4) Động lượng Yếu (RSI < 50 - Phe gấu kiểm soát) Không phát hiện phân kỳ."
+    "EndTime": "2026-10-24T01:48:15.9563552Z",
+    "Status": "HIT_SL",
+    "ExitPrice": 82404.27,
+    "PnlPercent": -1.80,
+    "Notes": "D\u00EDnh SL t\u1EA1i $82,404.27. L\u1ED7: -1.80% (Tu\u00E2n th\u1EE7 k\u1EF7 lu\u1EADt c\u1EAFt l\u1ED7 b\u1EA3o to\u00E0n v\u1ED1n)."
   },
   {
     "Id": "TRD-ETH901",
@@ -30,12 +87,12 @@
     "TakeProfit2": 2273.75,
     "TakeProfit3": 2215.00,
     "RiskRewardRatio": 2.5,
-    "StartTime": "2026-10-24T00:50:00.000Z",
+    "StartTime": "2026-10-24T00:50:00Z",
     "EndTime": null,
     "Status": "ACTIVE",
     "ExitPrice": null,
     "PnlPercent": null,
-    "Notes": "Hội tụ 78%: Khung D1/H4 gãy trendline tăng, giá test vùng Bearish FVG $2,382.50 - $2,390.00, RSI 14 = 38.2 nằm dưới 50. Áp lực phe gấu chi phối."
+    "Notes": "H\u1ED9i t\u1EE5 78%: Khung D1/H4 g\u00E3y trendline t\u0103ng, gi\u00E1 test v\u00F9ng Bearish FVG $2,382.50 - $2,390.00, RSI 14 = 38.2 n\u1EB1m d\u01B0\u1EDBi 50. \u00C1p l\u1EF1c phe g\u1EA5u chi ph\u1ED1i."
   },
   {
     "Id": "TRD-BNB702",
@@ -49,12 +106,12 @@
     "TakeProfit2": 766.95,
     "TakeProfit3": 782.00,
     "RiskRewardRatio": 2.5,
-    "StartTime": "2026-10-24T01:10:00.000Z",
+    "StartTime": "2026-10-24T01:10:00Z",
     "EndTime": null,
     "Status": "ACTIVE",
     "ExitPrice": null,
     "PnlPercent": null,
-    "Notes": "Hội tụ 76%: BNB duy trì cấu trúc tăng vững chắc trên D1/H4, phản ứng bật mạnh tại Bullish Order Block $732.00 - $735.20, RSI > 52 phân kỳ tăng ẩn."
+    "Notes": "H\u1ED9i t\u1EE5 76%: BNB duy tr\u00EC c\u1EA5u tr\u00FAc t\u0103ng v\u1EEFng ch\u1EAFc tr\u00EAn D1/H4, ph\u1EA3n \u1EE9ng b\u1EADt m\u1EA1nh t\u1EA1i Bullish Order Block $732.00 - $735.20, RSI \u003E 52 ph\u00E2n k\u1EF3 t\u0103ng \u1EA9n."
   },
   {
     "Id": "TRD-SOL603",
@@ -68,12 +125,12 @@
     "TakeProfit2": 97.55,
     "TakeProfit3": 94.80,
     "RiskRewardRatio": 2.5,
-    "StartTime": "2026-10-24T00:35:00.000Z",
+    "StartTime": "2026-10-24T00:35:00Z",
     "EndTime": null,
     "Status": "ACTIVE",
     "ExitPrice": null,
     "PnlPercent": null,
-    "Notes": "Hội tụ 74%: SOL suy yếu dưới EMA50 và EMA200 M15 ($103.40), từ chối giá tại Bearish Order Block, RSI 36.5 tiếp tục đi xuống."
+    "Notes": "H\u1ED9i t\u1EE5 74%: SOL suy y\u1EBFu d\u01B0\u1EDBi EMA50 v\u00E0 EMA200 M15 ($103.40), t\u1EEB ch\u1ED1i gi\u00E1 t\u1EA1i Bearish Order Block, RSI 36.5 ti\u1EBFp t\u1EE5c \u0111i xu\u1ED1ng."
   },
   {
     "Id": "TRD-NEAR501",
@@ -87,12 +144,12 @@
     "TakeProfit2": 4.360,
     "TakeProfit3": 4.200,
     "RiskRewardRatio": 2.5,
-    "StartTime": "2026-10-24T01:00:00.000Z",
+    "StartTime": "2026-10-24T01:00:00Z",
     "EndTime": null,
     "Status": "ACTIVE",
     "ExitPrice": null,
     "PnlPercent": null,
-    "Notes": "Hội tụ 77%: NEAR thủng đáy phiên Á tại $4.70 tạo Bearish BOS, chạm vùng Bearish FVG test lại $4.685, khối lượng bán tăng đột biến."
+    "Notes": "H\u1ED9i t\u1EE5 77%: NEAR th\u1EE7ng \u0111\u00E1y phi\u00EAn \u00C1 t\u1EA1i $4.70 t\u1EA1o Bearish BOS, ch\u1EA1m v\u00F9ng Bearish FVG test l\u1EA1i $4.685, kh\u1ED1i l\u01B0\u1EE3ng b\u00E1n t\u0103ng \u0111\u1ED9t bi\u1EBFn."
   },
   {
     "Id": "TRD-895089",
@@ -111,7 +168,7 @@
     "Status": "HIT_SL",
     "ExitPrice": 82352.86,
     "PnlPercent": -1.74,
-    "Notes": "Dính SL tại $82,352.86. Lỗ: -1.74% (Tuân thủ kỷ luật cắt lỗ bảo toàn vốn)."
+    "Notes": "D\u00EDnh SL t\u1EA1i $82,352.86. L\u1ED7: -1.74% (Tu\u00E2n th\u1EE7 k\u1EF7 lu\u1EADt c\u1EAFt l\u1ED7 b\u1EA3o to\u00E0n v\u1ED1n)."
   },
   {
     "Id": "TRD-BTC801",
@@ -130,7 +187,7 @@
     "Status": "HIT_TP2",
     "ExitPrice": 84875.00,
     "PnlPercent": 4.46,
-    "Notes": "Hội tụ đủ D1/H4 Bullish, giá kiểm định Bullish Order Block. Đã chốt lời TP2 thành công (+4.46%)."
+    "Notes": "H\u1ED9i t\u1EE5 \u0111\u1EE7 D1/H4 Bullish, gi\u00E1 ki\u1EC3m \u0111\u1ECBnh Bullish Order Block. \u0110\u00E3 ch\u1ED1t l\u1EDDi TP2 th\u00E0nh c\u00F4ng (\u002B4.46%)."
   },
   {
     "Id": "TRD-ETH402",
@@ -149,7 +206,7 @@
     "Status": "HIT_TP1",
     "ExitPrice": 2627.50,
     "PnlPercent": 4.11,
-    "Notes": "Chạm vùng kháng cự Bearish FVG trên H1 và phân kỳ giảm RSI. Đạt chốt lời TP1 an toàn (+4.11%)."
+    "Notes": "Ch\u1EA1m v\u00F9ng kh\u00E1ng c\u1EF1 Bearish FVG tr\u00EAn H1 v\u00E0 ph\u00E2n k\u1EF3 gi\u1EA3m RSI. \u0110\u1EA1t ch\u1ED1t l\u1EDDi TP1 an to\u00E0n (\u002B4.11%)."
   },
   {
     "Id": "TRD-BNB108",
@@ -168,7 +225,7 @@
     "Status": "HIT_TP2",
     "ExitPrice": 618.25,
     "PnlPercent": 4.43,
-    "Notes": "D1/H4 Golden Cross EMA20/50, nến BOS tăng rõ nét. Chốt lời TP2 xuất sắc (+4.43%)."
+    "Notes": "D1/H4 Golden Cross EMA20/50, n\u1EBFn BOS t\u0103ng r\u00F5 n\u00E9t. Ch\u1ED1t l\u1EDDi TP2 xu\u1EA5t s\u1EAFc (\u002B4.43%)."
   },
   {
     "Id": "TRD-SOL202",
@@ -182,12 +239,12 @@
     "TakeProfit2": 108.50,
     "TakeProfit3": 105.00,
     "RiskRewardRatio": 2.5,
-    "StartTime": "2026-10-21T04:00:00.000Z",
-    "EndTime": "2026-10-21T16:30:00.000Z",
+    "StartTime": "2026-10-21T04:00:00Z",
+    "EndTime": "2026-10-21T16:30:00Z",
     "Status": "HIT_TP2",
     "ExitPrice": 108.50,
     "PnlPercent": 5.65,
-    "Notes": "Mô hình Bearish Quasimodo (QML) giảm giá trên H1 kết hợp phân kỳ âm RSI. Đã chốt lời TP2 thành công (+5.65%)."
+    "Notes": "M\u00F4 h\u00ECnh Bearish Quasimodo (QML) gi\u1EA3m gi\u00E1 tr\u00EAn H1 k\u1EBFt h\u1EE3p ph\u00E2n k\u1EF3 \u00E2m RSI. \u0110\u00E3 ch\u1ED1t l\u1EDDi TP2 th\u00E0nh c\u00F4ng (\u002B5.65%)."
   },
   {
     "Id": "TRD-SOL305",
@@ -206,7 +263,7 @@
     "Status": "HIT_SL",
     "ExitPrice": 174.20,
     "PnlPercent": -2.41,
-    "Notes": "Tin tức CPI ra bất ngờ quét thủng hỗ trợ M15. Kích hoạt Stop Loss kỷ luật tại $174.20 (-2.41%)."
+    "Notes": "Tin t\u1EE9c CPI ra b\u1EA5t ng\u1EDD qu\u00E9t th\u1EE7ng h\u1ED7 tr\u1EE3 M15. K\u00EDch ho\u1EA1t Stop Loss k\u1EF7 lu\u1EADt t\u1EA1i $174.20 (-2.41%)."
   },
   {
     "Id": "TRD-NEAR201",
@@ -220,11 +277,11 @@
     "TakeProfit2": 5.280,
     "TakeProfit3": 5.450,
     "RiskRewardRatio": 2.5,
-    "StartTime": "2026-10-20T14:15:00.000Z",
-    "EndTime": "2026-10-21T03:45:00.000Z",
+    "StartTime": "2026-10-20T14:15:00Z",
+    "EndTime": "2026-10-21T03:45:00Z",
     "Status": "HIT_TP1",
     "ExitPrice": 5.120,
     "PnlPercent": 5.57,
-    "Notes": "Hội tụ 81% D1/H4 Bullish, breakout cản chéo và retest FVG $4.85 thành công. Chốt lời TP1 chuẩn xác (+5.57%)."
+    "Notes": "H\u1ED9i t\u1EE5 81% D1/H4 Bullish, breakout c\u1EA3n ch\u00E9o v\u00E0 retest FVG $4.85 th\u00E0nh c\u00F4ng. Ch\u1ED1t l\u1EDDi TP1 chu\u1EA9n x\u00E1c (\u002B5.57%)."
   }
 ]
