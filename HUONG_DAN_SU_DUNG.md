@@ -42,8 +42,8 @@ Dự án được tinh gọn thành **một khối độc lập duy nhất** b�
 * **.NET 9.0 SDK**: [Tải từ Microsoft .NET](https://dotnet.microsoft.com/download/dotnet/9.0).
 * **Microsoft SQL Server**: Bản Express hoặc Standard (hoặc LocalDB).
 
-### 2.2. Cấu Hình Cơ Sở Dữ Liệu
-Hệ thống sử dụng cơ sở dữ liệu `BinanceTracker` trên SQL Server. Cấu hình chuỗi kết nối nằm tại [backend/appsettings.json](file:///d:/2026/Binance/backend/appsettings.json):
+### 2.2. Khởi Tạo Cơ Sở Dữ Liệu (Gen Database)
+Hệ thống sử dụng cơ sở dữ liệu `BinanceTracker` trên Microsoft SQL Server. Cấu hình chuỗi kết nối nằm tại [backend/appsettings.json](file:///d:/2026/Binance/backend/appsettings.json):
 ```json
 {
   "ConnectionStrings": {
@@ -51,8 +51,27 @@ Hệ thống sử dụng cơ sở dữ liệu `BinanceTracker` trên SQL Server.
   }
 }
 ```
+
+Dự án đã chuẩn bị sẵn file script SQL đầy đủ [database_setup.sql](file:///d:/2026/Binance/database_setup.sql) và script PowerShell [setup_database.ps1](file:///d:/2026/Binance/setup_database.ps1). Bạn có thể gen DB theo 3 cách:
+
+* **Cách 1 (Nhanh nhất - Chạy 1 click bằng PowerShell)**:
+  ```powershell
+  .\setup_database.ps1
+  ```
+* **Cách 2 (Dùng lệnh sqlcmd)**:
+  ```powershell
+  sqlcmd -S . -U admin -P "shc@1234" -C -i database_setup.sql
+  ```
+* **Cách 3 (Dùng SSMS / Azure Data Studio)**:
+  Mở phần mềm SSMS, mở file `database_setup.sql` và nhấn `F5` (Execute).
+
 > [!NOTE]
-> Khi khởi chạy lần đầu, hệ thống sẽ **tự động kiểm tra và tạo bảng `[dbo].[TradeSignals]`** nếu chưa có, đồng thời khởi tạo các chỉ mục tối ưu truy vấn tốc độ cao.
+> Script trên sẽ tự động:
+> 1. Tạo Database `[BinanceTracker]` nếu chưa có.
+> 2. Tạo Bảng `[dbo].[TradeSignals]` với đầy đủ kiểu dữ liệu chuẩn (`decimal(18,8)`, các ràng buộc mặc định).
+> 3. Tạo 5 chỉ mục (Indexes) tốc độ cao (`IX_TradeSignals_Symbol`, `IX_TradeSignals_Status`, `IX_TradeSignals_StartTime`, `IX_TradeSignals_Session`, `IX_TradeSignals_Symbol_Status`).
+> 4. Nạp sẵn 15 bản ghi lệnh SMC mẫu lịch sử.
+> Ngoài ra, khi khởi chạy backend `dotnet run`, hệ thống cũng có cơ chế tự động kiểm tra bảng (auto-migration) để bạn không lo thiếu bảng hay cột.
 
 ### 2.3. Lệnh Khởi Chạy
 Mở PowerShell hoặc Command Prompt tại thư mục dự án và chạy:
