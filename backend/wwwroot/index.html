@@ -2354,11 +2354,11 @@
             <button class="btn-jfilter btn-jcoin" data-coin="BNB" onclick="setJournalCoinFilter('BNB')">
               🟡 BNB (BNB Chain)
             </button>
-            <button class="btn-jfilter btn-jcoin" data-coin="SOL" onclick="setJournalCoinFilter('SOL')">
-              🟣 SOL (Solana)
-            </button>
             <button class="btn-jfilter btn-jcoin" data-coin="NEAR" onclick="setJournalCoinFilter('NEAR')">
               🟢 NEAR (Protocol)
+            </button>
+            <button class="btn-jfilter btn-jcoin" data-coin="SOL" onclick="setJournalCoinFilter('SOL')">
+              🟣 SOL (Solana)
             </button>
             <button class="btn-jfilter btn-jcoin" data-coin="current" onclick="setJournalCoinFilter('current')">
               🎯 Chỉ Xem <span id="journal-curr-sym">BTCUSDT</span>
@@ -3347,7 +3347,7 @@
       return num.toFixed(2);
     }
 
-    // Load top coins list
+    // Load top coins list (Chỉ hiển thị 5 coin chính: BTC, ETH, BNB, NEAR, SOL)
     async function loadCoins() {
       try {
         const res = await fetch(`${API_BASE}/coins`);
@@ -3356,7 +3356,12 @@
         const bar = document.getElementById('coin-bar');
         bar.innerHTML = '';
 
-        coins.forEach(c => {
+        // Danh sách 5 coin chuẩn hiển thị trên thanh nav theo thứ tự
+        const allowedNavSymbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'NEARUSDT', 'SOLUSDT'];
+        const displayCoins = (coins || []).filter(c => allowedNavSymbols.includes(c.symbol));
+        displayCoins.sort((a, b) => allowedNavSymbols.indexOf(a.symbol) - allowedNavSymbols.indexOf(b.symbol));
+
+        displayCoins.forEach(c => {
           const tab = document.createElement('div');
           tab.className = `coin-tab ${c.symbol === currentSymbol ? 'active' : ''}`;
           tab.id = `tab-${c.symbol}`;
@@ -3377,11 +3382,15 @@
           bar.appendChild(tab);
         });
 
-        const active = coins.find(c => c.symbol === currentSymbol);
-        if (active) updateHero(active);
+        const active = displayCoins.find(c => c.symbol === currentSymbol) || displayCoins[0];
+        if (active && cSymbolMatched(active.symbol)) updateHero(active);
       } catch (err) {
         console.warn('Fallback coins load:', err);
       }
+    }
+
+    function cSymbolMatched(sym) {
+      return sym === currentSymbol;
     }
 
     function updateHero(coin) {

@@ -12,7 +12,7 @@ public class AutonomousTradeWorker : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<AutonomousTradeWorker> _logger;
-    private static readonly string[] MonitoredSymbols = { "BTC", "ETH", "BNB", "SOL", "NEAR" };
+    private static readonly string[] MonitoredSymbols = { "BTC", "ETH", "BNB", "NEAR", "SOL" };
 
     public AutonomousTradeWorker(IServiceScopeFactory scopeFactory, ILogger<AutonomousTradeWorker> logger)
     {

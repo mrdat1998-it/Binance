@@ -78,7 +78,7 @@ info: BinanceTracker.Api.Workers.AutonomousTradeWorker[0]
 Giao diện [index.html](file:///d:/2026/Binance/backend/wwwroot/index.html) được chia thành các khu vực chức năng rõ ràng:
 
 ### 3.1. Thanh Chọn Coin & Dữ Liệu Thời Gian Thực (Header Bar)
-* **Các đồng coin theo dõi chính**: Hỗ trợ 5 đồng coin nền tảng lớn nhất thị trường: `BTC`, `ETH`, `BNB`, `SOL`, `NEAR`.
+* **Các đồng coin theo dõi chính**: Thanh điều hướng (Nav) tinh gọn tập trung đúng 5 đồng coin cốt lõi: `BTC`, `ETH`, `BNB`, `NEAR`, `SOL`.
 * **Live WebSocket Tick-by-Tick**: Kết nối trực tiếp luồng `wss://stream.binance.com:9443` với độ trễ 0ms.
 * **Hiệu ứng nhấp nháy giá (Flash Animation)**: Giá vừa có lệnh mua đẩy lên sẽ lóe xanh; khi bị bán ép xuống sẽ lóe đỏ tức thì.
 * **Chỉ số Tâm Lý Sợ Hãi & Tham Lam (Fear & Greed Index)**: Cập nhật chỉ số từ Alternative.me, cảnh báo vùng cực đoan (Extreme Fear < 25 là cơ hội gom hàng, Extreme Greed > 75 là vùng chốt lời).
@@ -246,7 +246,7 @@ Hệ thống hỗ trợ cơ chế chạy ngầm thông minh, bạn có thể l�
 ### 6.1. Khi Tắt Trình Duyệt Web (Tab / Chrome / Edge)
 * **Bạn hoàn toàn có thể tắt tab hoặc đóng trình duyệt bất kỳ lúc nào.**
 * Dịch vụ ngầm **`AutonomousTradeWorker`** trong C# .NET vẫn liên tục chạy nền:
-  * Mỗi 25 giây tự động duyệt qua 5 coin (`BTC`, `ETH`, `BNB`, `SOL`, `NEAR`).
+  * Mỗi 25 giây tự động duyệt qua 5 coin (`BTC`, `ETH`, `BNB`, `NEAR`, `SOL`).
   * Tự động lấy giá Binance Futures Mark Price để kiểm tra chạm SL/TP.
   * Tự động phân tích nến 15M và ghi nhận lệnh mới vào SQL Server.
   * Khi bạn mở lại trình duyệt web sau vài tiếng hoặc vài ngày, toàn bộ lịch sử lệnh đã được lưu trữ đầy đủ.
