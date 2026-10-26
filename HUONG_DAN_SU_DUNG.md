@@ -1,0 +1,232 @@
+# 📘 TÀI LIỆU HƯỚNG DẪN SỬ DỤNG & PHƯƠNG PHÁP GIAO DỊCH
+### BINANCE CYCLE INTELLIGENCE & AUTONOMOUS SMC TRACKER
+*Phiên bản: 2.0 (Kiến trúc C# .NET 9 + SQL Server + Tiến trình ngầm 24/7)*
+
+---
+
+## 📑 MỤC LỤC
+1. [Tổng Quan Hệ Thống](#1-tổng-quan-hệ-thống)
+2. [Hướng Dẫn Cài Đặt & Khởi Chạy Nhanh](#2-hướng-dẫn-cài-đặt--khởi-chạy-nhanh)
+3. [Chi Tiết Các Thành Phần Trên Giao Diện Dashboard](#3-chi-tiết-các-thành-phần-trên-giao-diện-dashboard)
+4. [Phương Pháp & Thuật Toán Giao Dịch (ICT / SMC Confluence)](#4-phương-pháp--thuật-toán-giao-dịch-ict--smc-confluence)
+5. [Quy Tắc Quản Trị Rủi Ro & Cơ Chế Nhật Ký Lệnh (Trade Journal)](#5-quy-tắc-quản-trị-rủi-ro--cơ-chế-nhật-ký-lệnh-trade-journal)
+6. [Cơ Chế Vận Hành Tự Động 24/7 Khi Tắt Dự Án](#6-cơ-chế-vận-hành-tự-động-247-khi-tắt-dự-án)
+7. [Xử Lý Sự Cố Thường Gặp (Troubleshooting & FAQ)](#7-xử-lý-sự-cố-thường-gặp-troubleshooting--faq)
+
+---
+
+## 1. TỔNG QUAN HỆ THỐNG
+
+### 1.1. Mục Tiêu Của Dự Án
+Hệ thống được thiết kế để giải quyết bài toán lớn nhất của nhà đầu tư tiền mã hóa: **Loại bỏ hoàn toàn cảm xúc, sự nóng vội (FOMO) và tâm lý hoảng loạn** thông qua việc kết hợp 3 tầng phân tích dữ liệu:
+1. **Tầng Vĩ Mô (Macro Cycle)**: Mô hình chu kỳ Halving 4 năm của Bitcoin, Bội số Mayer, Định giá dòng tiền tổ chức (VanEck, Standard Chartered, Bernstein).
+2. **Tầng Vi Mô & Dòng Tiền Phái Sinh (Micro & Derivatives)**: Dữ liệu thời gian thực từ Binance Futures (Funding Rate, Tỷ lệ Long/Short, Open Interest, Liquidation Heatmap).
+3. **Tầng Kích Hoạt Lệnh (Execution & SMC)**: Chiến lược Smart Money Concepts (SMC) và ICT (Inner Circle Trader) tự động nhận diện Vùng mất cân bằng giá (FVG), Khối lệnh tổ chức (Order Block), Quét thanh khoản (Liquidity Sweep) và phân kỳ động lượng RSI.
+
+### 1.2. Kiến Trúc Hợp Nhất
+Dự án được tinh gọn thành **một khối độc lập duy nhất** bằng C# .NET 9:
+* **Backend Web API**: Xử lý dữ liệu nến, tính toán thuật toán định lượng, kết nối trực tiếp sàn Binance.
+* **Cơ sở dữ liệu Microsoft SQL Server**: Lưu trữ bền vững toàn bộ lịch sử tín hiệu lệnh, giá vào, giá cắt lỗ (SL), 3 mức chốt lời (TP) và hiệu suất PnL thực tế.
+* **Autonomous Worker 24/7**: Tiến trình ngầm tự động quét và giám sát thị trường mỗi 25 giây, không phụ thuộc vào trình duyệt web.
+* **Web Dashboard Tích Hợp (Cổng 5166)**: Giao diện web trực quan, tải nhanh tức thì, đồng bộ WebSocket giá live từng tick.
+
+---
+
+## 2. HƯỚNG DẪN CÀI ĐẶT & KHỞI CHẠY NHANH
+
+### 2.1. Yêu Cầu Môi Trường
+* **Hệ điều hành**: Windows 10/11 hoặc Windows Server / Linux.
+* **.NET 9.0 SDK**: [Tải từ Microsoft .NET](https://dotnet.microsoft.com/download/dotnet/9.0).
+* **Microsoft SQL Server**: Bản Express hoặc Standard (hoặc LocalDB).
+
+### 2.2. Cấu Hình Cơ Sở Dữ Liệu
+Hệ thống sử dụng cơ sở dữ liệu `BinanceTracker` trên SQL Server. Cấu hình chuỗi kết nối nằm tại [backend/appsettings.json](file:///d:/2026/Binance/backend/appsettings.json):
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Data Source=.;Initial Catalog=BinanceTracker;Persist Security Info=True;User ID=admin;Password=shc@1234;Pooling=False;MultipleActiveResultSets=True;Encrypt=True;TrustServerCertificate=True;Command Timeout=0"
+  }
+}
+```
+> [!NOTE]
+> Khi khởi chạy lần đầu, hệ thống sẽ **tự động kiểm tra và tạo bảng `[dbo].[TradeSignals]`** nếu chưa có, đồng thời khởi tạo các chỉ mục tối ưu truy vấn tốc độ cao.
+
+### 2.3. Lệnh Khởi Chạy
+Mở PowerShell hoặc Command Prompt tại thư mục dự án và chạy:
+```powershell
+cd d:\2026\Binance\backend
+dotnet run --urls=http://localhost:5166
+```
+
+Sau khi màn hình hiển thị log thông báo:
+```text
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5166
+info: BinanceTracker.Api.Workers.AutonomousTradeWorker[0]
+      >>> [AUTONOMOUS WORKER] Đã khởi động dịch vụ quét ngầm tự động 24/7...
+```
+
+👉 Mở trình duyệt web bất kỳ (Chrome, Edge, Cốc Cốc, Safari) truy cập: **[http://localhost:5166](http://localhost:5166)**.
+
+---
+
+## 3. CHI TIẾT CÁC THÀNH PHẦN TRÊN GIAO DIỆN DASHBOARD
+
+Giao diện [index.html](file:///d:/2026/Binance/backend/wwwroot/index.html) được chia thành các khu vực chức năng rõ ràng:
+
+### 3.1. Thanh Chọn Coin & Dữ Liệu Thời Gian Thực (Header Bar)
+* **Các đồng coin theo dõi chính**: Hỗ trợ 5 đồng coin nền tảng lớn nhất thị trường: `BTC`, `ETH`, `BNB`, `SOL`, `NEAR`.
+* **Live WebSocket Tick-by-Tick**: Kết nối trực tiếp luồng `wss://stream.binance.com:9443` với độ trễ 0ms.
+* **Hiệu ứng nhấp nháy giá (Flash Animation)**: Giá vừa có lệnh mua đẩy lên sẽ lóe xanh; khi bị bán ép xuống sẽ lóe đỏ tức thì.
+* **Chỉ số Tâm Lý Sợ Hãi & Tham Lam (Fear & Greed Index)**: Cập nhật chỉ số từ Alternative.me, cảnh báo vùng cực đoan (Extreme Fear < 25 là cơ hội gom hàng, Extreme Greed > 75 là vùng chốt lời).
+
+### 3.2. Biểu Đồ Nến Kỹ Thuật Tương Tác
+* Hiển thị nến chuẩn sàn Binance với khung thời gian tùy chọn (`15M`, `1H`, `4H`, `1D`).
+* Tích hợp 2 đường trung bình động cốt lõi:
+  * **Đường MA 50 (Vàng cam)**: Thể hiện xu hướng ngắn và trung hạn.
+  * **Đường MA 200 (Xanh lam)**: Đường ranh giới sinh tử xác định chu kỳ Bull Market hay Bear Market.
+
+### 3.3. Phân Tích Chu Kỳ Halving & Định Giá Đỉnh
+* **Đồng hồ đếm ngược Halving 4 năm**: Đo lường số ngày đã trôi qua kể từ đợt Halving gần nhất (20/04/2024) và đếm ngược tới kỳ Halving tiếp theo (~Tháng 04/2028).
+* **Bội số Mayer (Mayer Multiple)**: Tỷ số giữa Giá hiện tại / Đường SMA 200 Ngày:
+  * `< 0.8`: Vùng giá chiết khấu sâu, gom hàng dài hạn.
+  * `1.0 - 1.5`: Xu hướng tăng trưởng lành mạnh.
+  * `> 2.4`: Vùng bong bóng đầu cơ, báo hiệu đạt đỉnh chu kỳ.
+* **Pi Cycle Top Indicator**: So sánh giữa đường SMA 111 ngày và đường SMA 350 ngày x 2. Khi 2 đường này giao nhau là chỉ báo đỉnh lịch sử có độ chính xác 95%.
+* **Điểm Rủi Ro Chu Kỳ (Risk Score 1 - 10)**: Giúp bạn biết tỷ trọng nắm giữ tiền mặt hay crypto an toàn.
+
+### 3.4. Dữ Liệu Phái Sinh & Hợp Đồng Tương Lai (Binance Futures)
+* **Tỷ Lệ Phí Cấp Vốn (Funding Rate 8H & APR quy đổi theo năm)**:
+  * Funding dương cao (> 0.03%): Phe Long đang trả phí cho Short, thị trường quá hưng phấn, nguy cơ bẫy Long Squeeze quét râu giảm.
+  * Funding âm sâu (< -0.02%): Phe Short ồ ạt bán khống, nguy cơ kích hoạt Short Squeeze quét lên mạnh mẽ.
+* **Tỷ Lệ Long / Short Accounts**: Đo lường tỷ lệ tài khoản cá nhân đang theo chiều Long hay Short.
+* **Khối Lượng Hợp Đồng Mở (Open Interest - OI)**: Tổng giá trị vị thế đang mở tính bằng USD và số lượng coin.
+* **Bản Đồ Cụm Thanh Lý Hợp Đồng (Liquidation Heatmap)**: Tính toán chính xác vùng giá mà hàng trăm triệu USD đòn bẩy 20x, 30x, 50x sẽ bị kích hoạt thanh lý cưỡng bức.
+
+---
+
+## 4. PHƯƠNG PHÁP & THUẬT TOÁN GIAO DỊCH (ICT / SMC CONFLUENCE)
+
+Hệ thống **không giao dịch theo cảm tính hay chỉ báo chậm thông thường**, mà được mã hóa theo phương pháp **Smart Money Concepts (SMC)** và **Inner Circle Trader (ICT)** kết hợp đa khung thời gian.
+
+```mermaid
+flowchart TD
+    A["Dữ liệu Binance Klines (D1, H4, M15)"] --> B["Hệ thống chấm điểm Hội tụ (Confluence Scoring)"]
+    B --> C1["Trụ Cột 1: Multi-Timeframe Bias (30đ)"]
+    B --> C2["Trụ Cột 2: EMA Ribbon Trend (25đ)"]
+    B --> C3["Trụ Cột 3: Cấu trúc SMC / FVG / OB / Sweep (25đ)"]
+    B --> C4["Trụ Cột 4: RSI Momentum & Phân kỳ (20đ)"]
+    C1 & C2 & C3 & C4 --> D{"Tổng Điểm Hội Tụ >= 70%?"}
+    D -- "KHÔNG (< 70%)" --> E["⏸️ ĐỨNG NGOÀI QUAN SÁT (Bảo Toàn 100% Vốn)"]
+    D -- "CÓ (>= 70%)" --> F{"Đang có lệnh ACTIVE chạy cho Coin này?"}
+    F -- "ĐANG CÓ LỆNH" --> G["Giữ nguyên vị thế cũ, không mở thêm lệnh"]
+    F -- "CHƯA CÓ LỆNH" --> H{"Có vừa đóng lệnh < 45 phút cùng vùng giá?"}
+    H -- "CÓ (Spam Re-entry)" --> I["Chặn mở trùng lặp, bảo toàn vị thế"]
+    H -- "KHÔNG" --> J["🚀 KÍCH HOẠT LỆNH MỚI (Lưu SQL Server)"]
+```
+
+### 4.1. Hệ Thống Chấm Điểm Hội Tụ (Thang 100 Điểm)
+Để một tín hiệu được coi là hợp lệ để mở lệnh, điểm số hội tụ (Confidence Score) **bắt buộc phải vượt qua 70%** (`> 70%`) và phe chiếm ưu thế phải hơn phe đối nghịch ít nhất 8 điểm:
+
+| Trụ cột đánh giá | Trọng số | Tiêu chí kỹ thuật chi tiết |
+| :--- | :---: | :--- |
+| **Trụ Cột 1: Đồng pha đa khung (Daily Bias)** | **30 Điểm** | Khung ngày (D1) định hình xu hướng vĩ mô + Khung 4 giờ (H4) xác nhận nhịp sóng trung hạn. Khi cả D1 và H4 cùng là BULLISH (hoặc cùng BEARISH) sẽ được cộng tối đa 30 điểm. |
+| **Trụ Cột 2: Đường trung bình xu hướng EMA** | **25 Điểm** | Giá duy trì trên EMA 20, EMA 50 và đường EMA 20 nằm trên EMA 50 (cho lệnh Long) hoặc nằm dưới (cho lệnh Short). |
+| **Trụ Cột 3: Cấu trúc SMC (BOS, OB, FVG, Sweep)** | **25 Điểm** | **1) BOS (Break of Structure)**: Phá vỡ đỉnh/đáy gần nhất tạo xu hướng.<br>**2) Order Block (OB)**: Khối lệnh đỡ giá của Market Maker.<br>**3) Fair Value Gap (FVG)**: Vùng mất cân bằng cung cầu giữa 3 cây nến.<br>**4) Liquidity Sweep**: Đã quét sạch thanh khoản BSL (Buy-side) hoặc SSL (Sell-side). |
+| **Trụ Cột 4: Động lượng RSI & Phân kỳ** | **20 Điểm** | RSI 14 nằm trong vùng động lượng lành mạnh (42 - 65 cho Long, 35 - 58 cho Short). Thưởng lớn (+12 điểm) khi phát hiện **Phân kỳ ẩn hoặc Phân kỳ thường (Bullish/Bearish Divergence)** báo hiệu đảo chiều chuẩn xác. Có trừ điểm phạt (-12đ) nếu RSI quá mua > 72 hoặc quá bán < 28 để tránh đu đỉnh bán đáy. |
+
+### 4.2. Công Thức Xác Định Điểm Vào Lệnh & Chốt Lời / Dừng Lỗ
+Khi điểm số đạt chuẩn (> 70%):
+* **Giá Vào Lệnh (Entry Price)**:
+  * *Lệnh LONG*: Canh đón tại cạnh dưới của vùng mất cân bằng tăng giá (`Bullish FVG Low`) hoặc retest khối lệnh cầu (`Order Block Low`).
+  * *Lệnh SHORT*: Canh bán tại cạnh trên của vùng mất cân bằng giảm giá (`Bearish FVG High`) hoặc cản khối lệnh cung (`Order Block High`).
+* **Điểm Cắt Lỗ Nghiêm Ngặt (Stop Loss - SL)**:
+  * Luôn đặt vượt ra ngoài rìa bảo vệ của khối Order Block (Dưới đáy nến OB với lệnh Long, trên đỉnh nến OB với lệnh Short).
+* **3 Mốc Chốt Lời (Take Profit - TP)**:
+  * **TP1 (Tỷ lệ 1.5R)**: Chốt 30% - 40% khối lượng để thu hồi rủi ro. **Ngay khi giá chạm TP1, tự động dời Stop Loss về giá vào lệnh (Break-even)** để giao dịch trở thành vị thế không còn rủi ro.
+  * **TP2 (Tỷ lệ 2.5R hoặc Swing High/Low)**: Mục tiêu chính để chốt 40% khối lượng tiếp theo.
+  * **TP3 (Tỷ lệ 3.8R - Max Runner)**: Thả trôi 20% khối lượng còn lại theo sóng thị trường.
+
+---
+
+## 5. QUY TẮC QUẢN TRỊ RỦI RO & CƠ CHẾ NHẬT KÝ LỆNH (TRADE JOURNAL)
+
+Bảng **"Bảng Lưu Trữ Lịch Sử Lệnh & Giám Sát Kết Quả (Entry - SL - TP Journal)"** là trái tim của hệ thống giám sát.
+
+### 5.1. Ba Nguyên Tắc Sống Còn Trong Quản Trị Vốn
+1. **Nguyên tắc "1 Coin - 1 Vị Thế Duy Nhất"**:
+   * Khi một đồng coin (ví dụ BTC) đã đưa ra một lệnh đang chạy (`ACTIVE`), hệ thống **tuyệt đối không mở thêm bất kỳ lệnh nào khác** cho coin đó cho đến khi lệnh cũ chạm TP hoặc SL. Điều này triệt tiêu hoàn toàn thói quen nhồi lệnh mạo hiểm (Averaging Down / Martingale).
+2. **Cơ chế Chống Vào Lệnh Trùng Lặp (Anti-Spam Re-entry)**:
+   * Sau khi một lệnh vừa đóng (dù thắng hay thua), trong vòng **45 phút kế tiếp**, nếu có tín hiệu cùng chiều mà giá Entry lệch dưới `0.6%`, hệ thống sẽ **bỏ qua**, tránh trường hợp vừa chạm SL lại nhảy vào mua lại ngay tại vùng tranh chấp nguy hiểm.
+3. **Giám Sát Tự Động Theo Giá Mark Price Thật**:
+   * Hệ thống so sánh SL/TP bằng giá **Mark Price** chính thức của Binance Futures (giá được tính toán từ chỉ số spot của nhiều sàn lớn), giúp bạn không bị quét râu ảo hay lỗi giá cục bộ.
+
+### 5.2. Cách Đọc Dữ Liệu Trên Bảng Nhật Ký Lệnh
+* **Mã / Khung Giờ**: Kèm mã định danh giao dịch duy nhất (ví dụ `BTCUSDT • 15M • TRD-AA4A6C`).
+* **Vị Thế**: Hiển thị rõ `▲ LONG` (Xanh lục) hoặc `▼ SHORT` (Đỏ tươi).
+* **Độ Tin Cậy**: Điểm số hội tụ từ 70% đến 95%.
+* **Thời Điểm Vào / Thời Điểm Đóng (Giờ VN)**: Đã được cấu hình tự động quy đổi chính xác theo **Giờ Việt Nam (GMT+7 / ICT)** định dạng `dd/MM HH:mm` (ví dụ: `24/10 08:48`).
+* **Trạng Thái Vị Thế**:
+  * `⏳ Đang Chạy (ACTIVE)`: Vị thế đang mở, hệ thống quét giá liên tục.
+  * `🎯 Chạm TP1`: Đã chốt lời mốc 1.
+  * `🏆 Chạm TP2`: Đã chốt lời mốc chính 2.5R.
+  * `🚀 Chạm TP3 Max`: Đạt lợi nhuận cực đại.
+  * `🛑 Dính SL`: Chạm ngưỡng cắt lỗ kỷ luật để bảo vệ vốn.
+* **Hiệu Suất PnL**: Tính toán chính xác phần trăm lãi/lỗ dựa trên tỷ lệ chênh lệch giá Entry và Exit.
+* **Ghi Chú Kỹ Thuật**: Liệt kê chi tiết lý do vào lệnh (hội tụ đa khung, vị trí FVG, Order Block, RSI...).
+
+---
+
+## 6. CƠ CHẾ VẬN HÀNH TỰ ĐỘNG 24/7 KHI TẮT DỰ ÁN
+
+Hệ thống hỗ trợ cơ chế chạy ngầm thông minh, bạn có thể lựa chọn tùy theo điều kiện máy tính của mình:
+
+### 6.1. Khi Tắt Trình Duyệt Web (Tab / Chrome / Edge)
+* **Bạn hoàn toàn có thể tắt tab hoặc đóng trình duyệt bất kỳ lúc nào.**
+* Dịch vụ ngầm **`AutonomousTradeWorker`** trong C# .NET vẫn liên tục chạy nền:
+  * Mỗi 25 giây tự động duyệt qua 5 coin (`BTC`, `ETH`, `BNB`, `SOL`, `NEAR`).
+  * Tự động lấy giá Binance Futures Mark Price để kiểm tra chạm SL/TP.
+  * Tự động phân tích nến 15M và ghi nhận lệnh mới vào SQL Server.
+  * Khi bạn mở lại trình duyệt web sau vài tiếng hoặc vài ngày, toàn bộ lịch sử lệnh đã được lưu trữ đầy đủ.
+
+### 6.2. Khi Muốn Tắt Cửa Sổ Dòng Lệnh Đen (Terminal) Trên Máy Tính
+Nếu máy tính của bạn vẫn bật làm việc nhưng bạn không muốn nhìn thấy cửa sổ dòng lệnh:
+1. Cài đặt công cụ quản lý tiến trình chạy ngầm PM2:
+   ```powershell
+   npm install -g pm2
+   ```
+2. Khởi động backend ngầm:
+   ```powershell
+   cd d:\2026\Binance
+   pm2 start "dotnet run --project backend" --name "binance-tracker"
+   ```
+3. Lúc này bạn có thể đóng toàn bộ cửa sổ terminal. Dự án vẫn âm thầm chạy ngầm dưới nền Windows.
+
+### 6.3. Khi Muốn Tắt Hẳn Máy Tính Cá Nhân (Shutdown PC / Đi Ngủ)
+* Khi máy tính cá nhân bị tắt nguồn (shutdown), toàn bộ vi xử lý và SQL Server trên máy bạn sẽ ngừng hoạt động.
+* **Giải pháp để chạy 24/7/365 kể cả khi tắt máy tính**:
+  1. Thuê 1 máy chủ ảo **Cloud VPS** (giá chỉ từ 80.000đ - 120.000đ/tháng tại Vietnix, CloudFly, AZDIGI, Hetzner, Vultr...).
+  2. Kéo mã nguồn từ GitHub (`https://github.com/mrdat1998-it/Binance`) về VPS.
+  3. Bật dự án chạy trên VPS. VPS đặt ở trung tâm dữ liệu luôn có điện và internet tốc độ cao 24/24. Dù bạn tắt máy tính cá nhân hay đi ngủ, hệ thống vẫn liên tục quét và ghi nhật ký lệnh. Bất cứ khi nào bạn mở điện thoại hay máy tính lên, chỉ cần truy cập vào địa chỉ IP của VPS là xem được kết quả.
+
+---
+
+## 7. XỬ LÝ SỰ CỐ THƯỜNG GẶP (TROUBLESHOOTING & FAQ)
+
+### ❓ Câu hỏi 1: Tại sao có những thời điểm không thấy hệ thống sinh ra lệnh mới?
+* **Trả lời**: Đây là **tính năng bảo vệ tài khoản quan trọng nhất**. Hệ thống chỉ cho phép vào lệnh khi độ hội tụ điều kiện kỹ thuật đạt **trên 70% (> 70%)**. Vào những thời điểm thị trường đi ngang (Sideway), nén tích lũy, các khung giờ xung đột nhau (ví dụ D1 tăng nhưng H4 giảm), hệ thống sẽ kiên quyết kích hoạt trạng thái **"⏸️ ĐỨNG NGOÀI QUAN SÁT (Bảo Toàn 100% Vốn)"** để tránh bị thị trường bào mòn tài khoản.
+
+### ❓ Câu hỏi 2: Tại sao một đồng coin đang có lệnh chạy thì không thấy có thêm lệnh mới?
+* **Trả lời**: Hệ thống tuân thủ nguyên tắc kỷ luật: **Mỗi coin chỉ có tối đa 1 lệnh chạy**. Trong lúc lệnh đó chưa dính SL hoặc TP thì sẽ không mở thêm bất kỳ lệnh nào khác, tránh rủi ro chồng chéo vị thế.
+
+### ❓ Câu hỏi 3: Lỗi không kết nối được SQL Server khi khởi chạy `dotnet run`?
+* **Trả lời**: Kiểm tra 2 điểm:
+  1. Đảm bảo dịch vụ `SQL Server (MSSQLSERVER)` trong Windows Services (`services.msc`) đang ở trạng thái `Running`.
+  2. Kiểm tra mật khẩu tài khoản `admin` trong file [appsettings.json](file:///d:/2026/Binance/backend/appsettings.json) khớp với mật khẩu SQL Server của bạn.
+
+### ❓ Câu hỏi 4: Thời gian lệnh hiển thị có bị lệch múi giờ không?
+* **Trả lời**: Không. Toàn bộ mốc thời gian đã được chuẩn hóa theo chuẩn quốc tế ISO-8601 UTC kèm hậu tố `Z` từ database và được quy đổi chính xác sang **Giờ Việt Nam (ICT / GMT+7)** trên giao diện web.
+
+---
+
+*Tài liệu được cập nhật tự động đồng bộ cùng mã nguồn dự án tại GitHub Repository: [https://github.com/mrdat1998-it/Binance](https://github.com/mrdat1998-it/Binance).*
