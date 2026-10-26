@@ -116,13 +116,16 @@ flowchart TD
     B --> C2["Trụ Cột 2: EMA Ribbon Trend (25đ)"]
     B --> C3["Trụ Cột 3: Cấu trúc SMC / FVG / OB / Sweep (25đ)"]
     B --> C4["Trụ Cột 4: RSI Momentum & Phân kỳ (20đ)"]
-    C1 & C2 & C3 & C4 --> D{"Tổng Điểm Hội Tụ >= 70%?"}
+    B --> C5["Trụ Cột 5: Điều Kiện Phiên & Killzones (+10đ / -15đ)"]
+    C1 & C2 & C3 & C4 & C5 --> D{"Tổng Điểm Hội Tụ >= 70%?"}
     D -- "KHÔNG (< 70%)" --> E["⏸️ ĐỨNG NGOÀI QUAN SÁT (Bảo Toàn 100% Vốn)"]
-    D -- "CÓ (>= 70%)" --> F{"Đang có lệnh ACTIVE chạy cho Coin này?"}
-    F -- "ĐANG CÓ LỆNH" --> G["Giữ nguyên vị thế cũ, không mở thêm lệnh"]
-    F -- "CHƯA CÓ LỆNH" --> H{"Có vừa đóng lệnh < 45 phút cùng vùng giá?"}
-    H -- "CÓ (Spam Re-entry)" --> I["Chặn mở trùng lặp, bảo toàn vị thế"]
-    H -- "KHÔNG" --> J["🚀 KÍCH HOẠT LỆNH MỚI (Lưu SQL Server)"]
+    D -- "CÓ (>= 70%)" --> F{"Đang trong Vùng Chết (02:00 - 07:00)?"}
+    F -- "CÓ & Điểm < 82%" --> E
+    F -- "HỢP LỆ THEO PHIÊN" --> G{"Đang có lệnh ACTIVE chạy cho Coin này?"}
+    G -- "ĐANG CÓ LỆNH" --> H["Giữ nguyên vị thế cũ, không mở thêm lệnh"]
+    G -- "CHƯA CÓ LỆNH" --> I{"Có vừa đóng lệnh < 45 phút cùng vùng giá?"}
+    I -- "CÓ (Spam Re-entry)" --> J["Chặn mở trùng lặp, bảo toàn vị thế"]
+    I -- "KHÔNG" --> K["🚀 KÍCH HOẠT LỆNH MỚI (Lưu SQL Server)"]
 ```
 
 ### 4.1. Hệ Thống Chấm Điểm Hội Tụ (Thang 100 Điểm)
@@ -134,10 +137,24 @@ flowchart TD
 | **Trụ Cột 2: Đường trung bình xu hướng EMA** | **25 Điểm** | Giá duy trì trên EMA 20, EMA 50 và đường EMA 20 nằm trên EMA 50 (cho lệnh Long) hoặc nằm dưới (cho lệnh Short). |
 | **Trụ Cột 3: Cấu trúc SMC (BOS, OB, FVG, Sweep)** | **25 Điểm** | **1) BOS (Break of Structure)**: Phá vỡ đỉnh/đáy gần nhất tạo xu hướng.<br>**2) Order Block (OB)**: Khối lệnh đỡ giá của Market Maker.<br>**3) Fair Value Gap (FVG)**: Vùng mất cân bằng cung cầu giữa 3 cây nến.<br>**4) Liquidity Sweep**: Đã quét sạch thanh khoản BSL (Buy-side) hoặc SSL (Sell-side). |
 | **Trụ Cột 4: Động lượng RSI & Phân kỳ** | **20 Điểm** | RSI 14 nằm trong vùng động lượng lành mạnh (42 - 65 cho Long, 35 - 58 cho Short). Thưởng lớn (+12 điểm) khi phát hiện **Phân kỳ ẩn hoặc Phân kỳ thường (Bullish/Bearish Divergence)** báo hiệu đảo chiều chuẩn xác. Có trừ điểm phạt (-12đ) nếu RSI quá mua > 72 hoặc quá bán < 28 để tránh đu đỉnh bán đáy. |
+| **Trụ Cột 5: Điều Kiện Phiên & Killzones (Mới)** | **+10đ / -15đ** | **Thưởng điểm theo dòng tiền tổ chức:**<br>• *New York Open Killzone*: Thưởng **+10 điểm** (Thanh khoản bùng nổ).<br>• *London Open Killzone*: Thưởng **+8 điểm** (Săn thanh khoản Judas Swing).<br>• *Phiên Á*: Thưởng **+3 điểm** (Tích lũy biên độ).<br>• *Vùng Chết (02:00 - 07:00)*: **Trừ phạt -15 điểm** và khóa mở lệnh thông thường. |
 
-### 4.2. Công Thức Xác Định Điểm Vào Lệnh & Chốt Lời / Dừng Lỗ
-Khi điểm số đạt chuẩn (> 70%):
-* **Giá Vào Lệnh (Entry Price)**:
+### 4.2. Chiến Lược Giao Dịch Theo Phiên (ICT Session Trading & Killzones)
+Hệ thống tự động đồng bộ thời gian thực theo **Giờ Việt Nam (GMT+7)** và chia làm 4 phiên giao dịch đặc trưng:
+
+1. 🏛️ **Phiên Mỹ (New York Session - 19:00 đến 02:00 Giờ VN)**:
+   * **Giờ Vàng (New York Open Killzone - 19:30 đến 23:30)**: Khung giờ các quỹ ETF, Phố Wall và ngân hàng lớn tại Mỹ mở cửa giao dịch.
+   * **Chiến lược**: Dòng tiền tổ chức lớn nhất toàn cầu. Thích hợp đánh bứt phá (Breakout) và nương theo sóng lớn. Lệnh mở tại phiên này có tỷ lệ cán mốc TP2 và TP3 cao nhất.
+2. 🏰 **Phiên Âu (London Session - 14:00 đến 19:00 Giờ VN)**:
+   * **Giờ Vàng (London Open Killzone - 14:00 đến 17:30)**: Khung giờ các trung tâm tài chính London, Frankfurt nhập cuộc.
+   * **Chiến lược**: Nhận diện bẫy giá giả mạo (**Judas Swing**) quét sạch thanh khoản đỉnh/đáy của phiên Á, sau đó mở ra xu hướng chính của ngày.
+3. ⛩️ **Phiên Á (Asian Session / Tokyo - 07:00 đến 14:00 Giờ VN)**:
+   * **Chiến lược**: Thị trường chủ yếu đi ngang tích lũy tạo biên độ (**Asian Range**). Khuyến nghị chốt lời gần tại mốc TP1 (1.5R) hoặc gom tích lũy đón sóng phiên Âu.
+4. 🌙 **Vùng Chết (Off-Hours / Low Liquidity - 02:00 đến 07:00 sáng Giờ VN)**:
+   * **Cơ chế bảo vệ vốn ban đêm**: Cả thị trường Mỹ và châu Âu đều đã đóng cửa, châu Á chưa mở cửa. Thanh khoản cực mỏng, chênh lệch spread giãn rộng, dễ xuất hiện râu nến ảo giật 2 đầu quét Stop Loss bất thường.
+   * **Quy tắc hệ thống**: **Tự động kích hoạt cơ chế phòng vệ**, trừ -15 điểm phạt và **từ chối mở lệnh mới** trừ khi thị trường xuất hiện setup đặc biệt với độ hội tụ siêu mạnh ($\ge 82\%$).
+
+### 4.3. Công Thức Xác Định Điểm Vào Lệnh & Chốt Lời / Dừng Lỗ
   * *Lệnh LONG*: Canh đón tại cạnh dưới của vùng mất cân bằng tăng giá (`Bullish FVG Low`) hoặc retest khối lệnh cầu (`Order Block Low`).
   * *Lệnh SHORT*: Canh bán tại cạnh trên của vùng mất cân bằng giảm giá (`Bearish FVG High`) hoặc cản khối lệnh cung (`Order Block High`).
 * **Điểm Cắt Lỗ Nghiêm Ngặt (Stop Loss - SL)**:
@@ -230,3 +247,4 @@ Nếu máy tính của bạn vẫn bật làm việc nhưng bạn không muốn 
 ---
 
 *Tài liệu được cập nhật tự động đồng bộ cùng mã nguồn dự án tại GitHub Repository: [https://github.com/mrdat1998-it/Binance](https://github.com/mrdat1998-it/Binance).*
+

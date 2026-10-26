@@ -59,7 +59,11 @@ public class AutonomousTradeWorker : BackgroundService
                         var activeTrade = await tradeHistoryService.GetActiveSignalAsync(symbol);
                         if (activeTrade == null && analysis.IctSetup != null && analysis.IctSetup.ConfidenceScore > 70 && analysis.IctSetup.OptimalEntry > 0)
                         {
-                            await tradeHistoryService.RecordSignalIfEligibleAsync(symbol, "15m", analysis.IctSetup, trueLivePrice);
+                            // Kiểm tra điều kiện phiên: Trong vùng chết (02:00 - 07:00), không mở lệnh trừ khi điểm hội tụ >= 82%
+                            if (analysis.SessionInfo == null || analysis.SessionInfo.IsTradeAllowed || analysis.IctSetup.ConfidenceScore >= 82)
+                            {
+                                await tradeHistoryService.RecordSignalIfEligibleAsync(symbol, "15m", analysis.IctSetup, trueLivePrice);
+                            }
                         }
                     }
                     catch (Exception ex)

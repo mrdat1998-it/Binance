@@ -1235,6 +1235,150 @@
       border: 1px solid rgba(246, 70, 93, 0.45);
     }
 
+    /* TRADING SESSIONS & KILLZONES STYLES */
+    .session-tracker-card {
+      background: linear-gradient(135deg, rgba(20, 26, 38, 0.95) 0%, rgba(13, 17, 26, 0.95) 100%);
+      border: 1px solid rgba(240, 185, 11, 0.3);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      margin-bottom: 16px;
+    }
+    .session-tracker-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .session-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 992px) {
+      .session-grid-4 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 576px) {
+      .session-grid-4 { grid-template-columns: 1fr; }
+    }
+    .session-box {
+      background: rgba(10, 13, 20, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 10px 12px;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+    .session-box.active {
+      border-color: rgba(240, 185, 11, 0.85);
+      background: rgba(240, 185, 11, 0.08);
+      box-shadow: 0 0 15px rgba(240, 185, 11, 0.15);
+    }
+    .session-box.active-killzone {
+      border-color: rgba(14, 203, 129, 0.9);
+      background: rgba(14, 203, 129, 0.12);
+      box-shadow: 0 0 18px rgba(14, 203, 129, 0.25);
+    }
+    .session-box.active-dead {
+      border-color: rgba(246, 70, 93, 0.85);
+      background: rgba(246, 70, 93, 0.08);
+      box-shadow: 0 0 15px rgba(246, 70, 93, 0.15);
+    }
+    .sess-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .sess-pill {
+      font-size: 0.65rem;
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .sess-desc {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+    .sess-status {
+      margin-top: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .sess-advice-box {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 6px;
+      font-size: 0.76rem;
+      color: #d1d4dc;
+      border-left: 3px solid var(--accent-yellow);
+      line-height: 1.4;
+    }
+    .badge-session {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 6px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      white-space: nowrap;
+    }
+    .badge-session-ny {
+      background: rgba(147, 51, 234, 0.2);
+      color: #c084fc;
+      border: 1px solid rgba(147, 51, 234, 0.45);
+    }
+    .badge-session-london {
+      background: rgba(14, 203, 129, 0.18);
+      color: var(--green);
+      border: 1px solid rgba(14, 203, 129, 0.45);
+    }
+    .badge-session-asia {
+      background: rgba(240, 185, 11, 0.18);
+      color: var(--accent-yellow);
+      border: 1px solid rgba(240, 185, 11, 0.45);
+    }
+    .badge-session-off {
+      background: rgba(246, 70, 93, 0.18);
+      color: var(--red);
+      border: 1px solid rgba(246, 70, 93, 0.45);
+    }
+    .btn-jsession.active[data-session="NEW_YORK"] {
+      background: rgba(147, 51, 234, 0.25);
+      color: #c084fc;
+      border-color: rgba(147, 51, 234, 0.6);
+      box-shadow: 0 0 10px rgba(147, 51, 234, 0.25);
+    }
+    .btn-jsession.active[data-session="LONDON"] {
+      background: rgba(14, 203, 129, 0.22);
+      color: var(--green);
+      border-color: rgba(14, 203, 129, 0.6);
+      box-shadow: 0 0 10px rgba(14, 203, 129, 0.25);
+    }
+    .btn-jsession.active[data-session="ASIA"] {
+      background: rgba(240, 185, 11, 0.22);
+      color: var(--accent-yellow);
+      border-color: rgba(240, 185, 11, 0.6);
+      box-shadow: 0 0 10px rgba(240, 185, 11, 0.25);
+    }
+    .btn-jsession.active[data-session="OFF_HOURS"] {
+      background: rgba(246, 70, 93, 0.22);
+      color: var(--red);
+      border-color: rgba(246, 70, 93, 0.6);
+      box-shadow: 0 0 10px rgba(246, 70, 93, 0.25);
+    }
+
     .daily-bias-card {
       background: linear-gradient(135deg, rgba(20, 26, 38, 0.95) 0%, rgba(13, 17, 26, 0.95) 100%);
       border: 1px solid rgba(41, 98, 255, 0.35);
@@ -1594,6 +1738,61 @@
         </div>
       </div>
 
+      <!-- 4-SESSION ICT TRADING MONITOR BAR -->
+      <div class="session-tracker-card">
+        <div class="session-tracker-header">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-yellow);"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">GIÁM SÁT 4 PHIÊN GIAO DỊCH QUỐC TẾ (ICT SESSIONS & KILLZONES)</span>
+            <span class="live-pulse"></span>
+          </div>
+          <div id="session-active-summary" style="font-size:0.85rem; font-weight:700; color:var(--accent-yellow);">
+            Đang xác định phiên thị trường...
+          </div>
+        </div>
+        <div class="session-grid-4">
+          <!-- PHIÊN Á -->
+          <div class="session-box" id="sess-box-asia">
+            <div class="sess-title">
+              <span>⛩️ Phiên Á (Tokyo)</span>
+              <span class="sess-pill" id="sess-pill-asia">07:00 - 14:00</span>
+            </div>
+            <div class="sess-desc">Asian Range • Tích Lũy Biên Độ</div>
+            <div class="sess-status" id="sess-stat-asia">Chờ Mở</div>
+          </div>
+          <!-- PHIÊN ÂU -->
+          <div class="session-box" id="sess-box-london">
+            <div class="sess-title">
+              <span>🏰 Phiên Âu (London)</span>
+              <span class="sess-pill" id="sess-pill-london">14:00 - 19:00</span>
+            </div>
+            <div class="sess-desc">London Open Killzone • Săn Thanh Khoản</div>
+            <div class="sess-status" id="sess-stat-london">Chờ Mở</div>
+          </div>
+          <!-- PHIÊN MỸ -->
+          <div class="session-box" id="sess-box-ny">
+            <div class="sess-title">
+              <span>🏛️ Phiên Mỹ (New York)</span>
+              <span class="sess-pill" id="sess-pill-ny">19:00 - 02:00</span>
+            </div>
+            <div class="sess-desc">Prime Killzone • Dòng Tiền Quỹ Mỹ</div>
+            <div class="sess-status" id="sess-stat-ny">Chờ Mở</div>
+          </div>
+          <!-- VÙNG CHẾT -->
+          <div class="session-box" id="sess-box-off">
+            <div class="sess-title">
+              <span>🌙 Vùng Chết (Off-Hours)</span>
+              <span class="sess-pill" id="sess-pill-off">02:00 - 07:00</span>
+            </div>
+            <div class="sess-desc">Thanh Khoản Mỏng • Hạn Chế Giao Dịch</div>
+            <div class="sess-status" id="sess-stat-off">Chờ Mở</div>
+          </div>
+        </div>
+        <div class="sess-advice-box" id="sess-advice-text">
+          💡 <b>Chiến lược phiên:</b> Đang kết nối phân tích phiên giao dịch...
+        </div>
+      </div>
+
       <!-- MULTI-TIMEFRAME DAILY BIAS SYSTEM (D1 TỔNG - H4 TRUNG HẠN - M15 VÀO LỆNH) -->
       <div class="daily-bias-card">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -1817,9 +2016,10 @@
       <div class="ft-signal-box" id="ict-order-box" style="border: 1px solid rgba(240, 185, 11, 0.35); background: linear-gradient(135deg, rgba(18, 23, 34, 0.95) 0%, rgba(11, 14, 20, 0.95) 100%);">
         <div class="ft-signal-header">
           <div>
-            <div style="display:flex; align-items:center; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">CHIẾN LƯỢC HỘI TỤ ICT + RSI 14 + EMA RIBBON</span>
               <span class="ict-tag ict-tag-neutral" id="ict-conf-score">Độ tin cậy: 75%</span>
+              <span class="badge-session badge-session-ny" id="ict-session-badge">Đang xác định phiên...</span>
             </div>
             <div style="margin-top:6px;">
               <span class="ft-action-badge ft-action-short" id="ict-setup-badge" style="font-size:1.05rem;">
@@ -2037,6 +2237,30 @@
             </button>
           </div>
         </div>
+
+        <!-- ROW 3: SESSION SELECTION (LỌC THEO PHIÊN GIAO DỊCH) -->
+        <div class="journal-filter-row" style="margin-top:4px;">
+          <div class="journal-filter-label">
+            <span>🌐 Lọc Theo Phiên:</span>
+          </div>
+          <div class="journal-btn-group" id="journal-session-buttons">
+            <button class="btn-jfilter btn-jsession active" data-session="all" onclick="setJournalSessionFilter('all')">
+              Toàn Bộ Phiên
+            </button>
+            <button class="btn-jfilter btn-jsession" data-session="NEW_YORK" onclick="setJournalSessionFilter('NEW_YORK')">
+              🏛️ Phiên Mỹ (New York)
+            </button>
+            <button class="btn-jfilter btn-jsession" data-session="LONDON" onclick="setJournalSessionFilter('LONDON')">
+              🏰 Phiên Âu (London)
+            </button>
+            <button class="btn-jfilter btn-jsession" data-session="ASIA" onclick="setJournalSessionFilter('ASIA')">
+              ⛩️ Phiên Á (Tokyo)
+            </button>
+            <button class="btn-jfilter btn-jsession" data-session="OFF_HOURS" onclick="setJournalSessionFilter('OFF_HOURS')">
+              🌙 Vùng Chết (Off-Hours)
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- 6 SUMMARY STAT CARDS -->
@@ -2079,6 +2303,7 @@
           <thead>
             <tr>
               <th>Mã / Khung Giờ</th>
+              <th>Phiên</th>
               <th>Vị Thế</th>
               <th>Độ Tin Cậy</th>
               <th>Thời Điểm Vào (Giờ VN)</th>
@@ -2093,7 +2318,7 @@
           </thead>
           <tbody id="journal-tbody">
             <tr>
-              <td colspan="11" style="text-align:center; padding:30px; color:var(--text-muted);">
+              <td colspan="12" style="text-align:center; padding:30px; color:var(--text-muted);">
                 Đang tải nhật ký lệnh giao dịch...
               </td>
             </tr>
@@ -3202,6 +3427,9 @@
 
         // Top info
         document.getElementById('ft-next-funding').innerText = `Kỳ Funding kế tiếp: ${ft.nextFundingTime}`;
+        if (ft.sessionInfo) {
+          renderSessionInfo(ft.sessionInfo);
+        }
         
         const frSign = ft.fundingRatePercent >= 0 ? '+' : '';
         const frEl = document.getElementById('ft-funding-val');
@@ -3437,9 +3665,72 @@
       }
     }
 
+    function renderSessionInfo(sess) {
+      if (!sess) return;
+      const activeSummary = document.getElementById('session-active-summary');
+      if (activeSummary) {
+        activeSummary.innerHTML = `<span style="color:#0ecb81; font-weight:800;">●</span> ${sess.sessionName} • <span style="color:var(--text-muted); font-size:0.75rem;">${sess.timeRangeVn}</span>`;
+      }
+      const adviceEl = document.getElementById('sess-advice-text');
+      if (adviceEl) {
+        adviceEl.innerHTML = `💡 <b>Chiến lược ${sess.sessionName}:</b> ${sess.strategyAdvice} • <b>Thanh khoản:</b> ${sess.liquidityLevel}`;
+      }
+
+      ['asia', 'london', 'ny', 'off'].forEach(k => {
+        const el = document.getElementById(`sess-box-${k}`);
+        const statEl = document.getElementById(`sess-stat-${k}`);
+        if (el) el.className = 'session-box';
+        if (statEl) {
+          statEl.innerText = 'Chờ Mở';
+          statEl.style.color = 'var(--text-muted)';
+        }
+      });
+
+      if (sess.sessionCode === 'NEW_YORK') {
+        const el = document.getElementById('sess-box-ny');
+        const stat = document.getElementById('sess-stat-ny');
+        if (el) el.className = sess.isKillzone ? 'session-box active-killzone' : 'session-box active';
+        if (stat) {
+          stat.innerHTML = `<span style="color:#0ecb81; font-weight:800;">ĐANG CHẠY 🔥 ${sess.isKillzone ? '(KILLZONE)' : ''}</span>`;
+        }
+      } else if (sess.sessionCode === 'LONDON') {
+        const el = document.getElementById('sess-box-london');
+        const stat = document.getElementById('sess-stat-london');
+        if (el) el.className = sess.isKillzone ? 'session-box active-killzone' : 'session-box active';
+        if (stat) {
+          stat.innerHTML = `<span style="color:#0ecb81; font-weight:800;">ĐANG CHẠY ⚡ ${sess.isKillzone ? '(KILLZONE)' : ''}</span>`;
+        }
+      } else if (sess.sessionCode === 'ASIA') {
+        const el = document.getElementById('sess-box-asia');
+        const stat = document.getElementById('sess-stat-asia');
+        if (el) el.className = 'session-box active';
+        if (stat) {
+          stat.innerHTML = `<span style="color:#f0b90b; font-weight:800;">ĐANG CHẠY 📊 (RANGE)</span>`;
+        }
+      } else {
+        const el = document.getElementById('sess-box-off');
+        const stat = document.getElementById('sess-stat-off');
+        if (el) el.className = 'session-box active-dead';
+        if (stat) {
+          stat.innerHTML = `<span style="color:#f6465d; font-weight:800;">VÙNG CHẾT ⚠️ (NGHỈ TRADE)</span>`;
+        }
+      }
+
+      const ictSessEl = document.getElementById('ict-session-badge');
+      if (ictSessEl) {
+        let badgeClass = 'badge-session badge-session-ny';
+        if (sess.sessionCode === 'LONDON') badgeClass = 'badge-session badge-session-london';
+        else if (sess.sessionCode === 'ASIA') badgeClass = 'badge-session badge-session-asia';
+        else if (sess.sessionCode === 'OFF_HOURS') badgeClass = 'badge-session badge-session-off';
+        ictSessEl.className = badgeClass;
+        ictSessEl.innerText = `${sess.statusBadge}`;
+      }
+    }
+
     // TRADE JOURNAL (LỊCH SỬ LỆNH & GIÁM SÁT SL/TP)
     let journalCoinFilter = 'all'; // 'all', 'BTC', 'ETH', 'BNB', 'SOL', 'NEAR', 'current'
     let journalStatusFilter = 'all'; // 'all', 'ACTIVE', 'CLOSED', 'WIN', 'LOSS'
+    let journalSessionFilter = 'all'; // 'all', 'NEW_YORK', 'LONDON', 'ASIA', 'OFF_HOURS'
 
     async function loadTradeHistory() {
       try {
@@ -3455,7 +3746,12 @@
           statParam = `status=${journalStatusFilter}`;
         }
 
-        const queryParams = [symParam, statParam].filter(Boolean).join('&');
+        let sessParam = '';
+        if (journalSessionFilter !== 'all') {
+          sessParam = `session=${journalSessionFilter}`;
+        }
+
+        const queryParams = [symParam, statParam, sessParam].filter(Boolean).join('&');
         const url = `${API_BASE}/futures/history${queryParams ? '?' + queryParams : ''}`;
 
         const res = await fetch(url);
@@ -3481,6 +3777,15 @@
       document.querySelectorAll('.btn-jstatus').forEach(b => {
         b.classList.remove('active');
         if (b.getAttribute('data-status') === status) b.classList.add('active');
+      });
+      loadTradeHistory();
+    }
+
+    function setJournalSessionFilter(session) {
+      journalSessionFilter = session;
+      document.querySelectorAll('.btn-jsession').forEach(b => {
+        b.classList.remove('active');
+        if (b.getAttribute('data-session') === session) b.classList.add('active');
       });
       loadTradeHistory();
     }
@@ -3517,7 +3822,7 @@
       if (!tbody) return;
 
       if (!data.records || data.records.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:30px; color:var(--text-muted);">Chưa có lệnh nào được lưu cho bộ lọc này. Hệ thống chỉ tự động ghi nhận khi hội tụ đủ điều kiện &gt; 70%.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:30px; color:var(--text-muted);">Chưa có lệnh nào được lưu cho bộ lọc này. Hệ thống chỉ tự động ghi nhận khi hội tụ đủ điều kiện &gt; 70%.</td></tr>`;
         return;
       }
 
@@ -3542,6 +3847,15 @@
           statusBadge = `<span class="badge-status">${r.status}</span>`;
         }
 
+        let sessionBadge = '<span class="badge-session badge-session-asia">⛩️ Á</span>';
+        if (r.session === 'NEW_YORK') {
+          sessionBadge = '<span class="badge-session badge-session-ny">🏛️ Mỹ</span>';
+        } else if (r.session === 'LONDON') {
+          sessionBadge = '<span class="badge-session badge-session-london">🏰 Âu</span>';
+        } else if (r.session === 'OFF_HOURS') {
+          sessionBadge = '<span class="badge-session badge-session-off">🌙 Chết</span>';
+        }
+
         const startStr = formatJournalDate(r.startTime);
         const endStr = r.endTime ? formatJournalDate(r.endTime) : '<span style="color:var(--text-muted); font-style:italic;">Đang giám sát</span>';
 
@@ -3558,6 +3872,7 @@
               <div style="font-weight:700; color:#fff;">${r.symbol}</div>
               <div style="font-size:0.68rem; color:var(--accent-yellow); font-family:'JetBrains Mono';">${r.timeframe ? r.timeframe.toUpperCase() : '15M'} • ${r.id}</div>
             </td>
+            <td>${sessionBadge}</td>
             <td>${actionBadge}</td>
             <td><b style="color:var(--accent-yellow); font-family:'JetBrains Mono';">${r.confidenceScore}%</b></td>
             <td style="font-family:'JetBrains Mono'; font-size:0.75rem; color:#b7bdc6;">${startStr}</td>

@@ -14,6 +14,34 @@ public static class DbInitializer
             // Ensure the SQL Server database and all tables are created
             await context.Database.EnsureCreatedAsync();
 
+            // Auto-migration: Đảm bảo cột [Session] tồn tại trên bảng [TradeSignals] và backfill dữ liệu cũ
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync(
+                    "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[TradeSignals]') AND name = 'Session') " +
+                    "ALTER TABLE [dbo].[TradeSignals] ADD [Session] NVARCHAR(32) NULL;");
+
+                await context.Database.ExecuteSqlRawAsync(
+                    "IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_TradeSignals_Session' AND object_id = OBJECT_ID(N'[dbo].[TradeSignals]')) " +
+                    "CREATE NONCLUSTERED INDEX [IX_TradeSignals_Session] ON [dbo].[TradeSignals] ([Session]);");
+
+                await context.Database.ExecuteSqlRawAsync(
+                    "UPDATE [dbo].[TradeSignals] " +
+                    "SET [Session] = CASE " +
+                    "   WHEN DATEPART(hour, DATEADD(hour, 7, [StartTime])) >= 19 OR DATEPART(hour, DATEADD(hour, 7, [StartTime])) < 2 THEN 'NEW_YORK' " +
+                    "   WHEN DATEPART(hour, DATEADD(hour, 7, [StartTime])) >= 14 THEN 'LONDON' " +
+                    "   WHEN DATEPART(hour, DATEADD(hour, 7, [StartTime])) >= 7 THEN 'ASIA' " +
+                    "   ELSE 'OFF_HOURS' " +
+                    "END " +
+                    "WHERE [Session] IS NULL;");
+
+                logger.LogInformation("Auto-migration cột Session và backfill thành công.");
+            }
+            catch (Exception exMig)
+            {
+                logger.LogWarning("Auto-migration cột Session: {Message}", exMig.Message);
+            }
+
             // Check if any records already exist in the database
             if (!await context.TradeSignals.AnyAsync())
             {

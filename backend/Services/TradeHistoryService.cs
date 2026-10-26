@@ -16,7 +16,7 @@ public class TradeHistoryService : ITradeHistoryService
         _logger = logger;
     }
 
-    public async Task<TradeHistorySummary> GetHistorySummaryAsync(string? symbol = null, string? status = null)
+    public async Task<TradeHistorySummary> GetHistorySummaryAsync(string? symbol = null, string? status = null, string? session = null)
     {
         try
         {
@@ -54,6 +54,12 @@ public class TradeHistoryService : ITradeHistoryService
                 {
                     query = query.Where(r => r.Status == normStatus);
                 }
+            }
+
+            if (!string.IsNullOrWhiteSpace(session) && !session.Equals("all", StringComparison.OrdinalIgnoreCase))
+            {
+                var normSession = session.Trim().ToUpperInvariant();
+                query = query.Where(r => r.Session == normSession);
             }
 
             var entities = await query.OrderByDescending(r => r.StartTime).ToListAsync();
@@ -153,8 +159,17 @@ public class TradeHistoryService : ITradeHistoryService
                 }
             }
 
+            // Điều kiện phiên: Không mở lệnh trong Vùng Chết (02:00 - 07:00) trừ khi điểm hội tụ >= 82%
+            if (ict.SessionInfo != null && !ict.SessionInfo.IsTradeAllowed && ict.ConfidenceScore < 82)
+            {
+                _logger.LogInformation("Database: Bỏ qua tạo lệnh cho {Symbol} vì đang trong {Session} ({Advice}).",
+                    normSymbol, ict.SessionInfo.SessionName, ict.SessionInfo.StrategyAdvice);
+                return null;
+            }
+
             var id = $"TRD-{Guid.NewGuid().ToString("N")[..6].ToUpperInvariant()}";
             var now = DateTime.UtcNow;
+            var sessionCode = ict.SessionInfo?.SessionCode ?? TradeSignalEntity.DetermineSessionFromTime(now);
 
             var entity = new TradeSignalEntity
             {
@@ -175,6 +190,7 @@ public class TradeHistoryService : ITradeHistoryService
                 ExitPrice = null,
                 PnlPercent = null,
                 Notes = ict.ConfluenceSummary,
+                Session = sessionCode,
                 CreatedAt = now,
                 UpdatedAt = now
             };

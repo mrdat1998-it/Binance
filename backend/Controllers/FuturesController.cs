@@ -45,18 +45,30 @@ public class FuturesController : ControllerBase
         var activeTrade = await _tradeHistoryService.GetActiveSignalAsync(symbol);
         if (activeTrade == null && analysis.IctSetup != null && analysis.IctSetup.ConfidenceScore > 70 && analysis.IctSetup.OptimalEntry > 0)
         {
-            await _tradeHistoryService.RecordSignalIfEligibleAsync(symbol, interval, analysis.IctSetup, trueLivePrice);
+            // Kiểm tra điều kiện phiên: Không mở lệnh trong Vùng Chết (02:00 - 07:00) trừ khi điểm hội tụ >= 82%
+            if (analysis.SessionInfo == null || analysis.SessionInfo.IsTradeAllowed || analysis.IctSetup.ConfidenceScore >= 82)
+            {
+                await _tradeHistoryService.RecordSignalIfEligibleAsync(symbol, interval, analysis.IctSetup, trueLivePrice);
+            }
         }
 
         return Ok(analysis);
     }
 
+    [HttpGet("session")]
+    public ActionResult<TradingSessionInfo> GetCurrentSession()
+    {
+        var session = FuturesService.GetTradingSessionInfo(DateTime.UtcNow);
+        return Ok(session);
+    }
+
     [HttpGet("history")]
     public async Task<ActionResult<TradeHistorySummary>> GetTradeHistory(
         [FromQuery] string? symbol = null,
-        [FromQuery] string? status = null)
+        [FromQuery] string? status = null,
+        [FromQuery] string? session = null)
     {
-        var history = await _tradeHistoryService.GetHistorySummaryAsync(symbol, status);
+        var history = await _tradeHistoryService.GetHistorySummaryAsync(symbol, status, session);
         return Ok(history);
     }
 

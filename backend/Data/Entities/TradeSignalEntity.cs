@@ -60,6 +60,9 @@ public class TradeSignalEntity
     [MaxLength(2000)]
     public string? Notes { get; set; }
 
+    [MaxLength(32)]
+    public string? Session { get; set; } // "NEW_YORK", "LONDON", "ASIA", "OFF_HOURS"
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? UpdatedAt { get; set; }
@@ -81,8 +84,19 @@ public class TradeSignalEntity
         Status: Status,
         ExitPrice: ExitPrice,
         PnlPercent: PnlPercent,
-        Notes: Notes ?? string.Empty
+        Notes: Notes ?? string.Empty,
+        Session: !string.IsNullOrWhiteSpace(Session) ? Session : DetermineSessionFromTime(StartTime)
     );
+
+    public static string DetermineSessionFromTime(DateTime timeUtc)
+    {
+        var vnTime = timeUtc.Kind == DateTimeKind.Utc ? timeUtc.AddHours(7) : timeUtc;
+        int hour = vnTime.Hour;
+        if (hour >= 19 || hour < 2) return "NEW_YORK";
+        if (hour >= 14) return "LONDON";
+        if (hour >= 7) return "ASIA";
+        return "OFF_HOURS";
+    }
 
     public static TradeSignalEntity FromRecord(TradeSignalRecord r) => new()
     {
@@ -103,6 +117,7 @@ public class TradeSignalEntity
         ExitPrice = r.ExitPrice,
         PnlPercent = r.PnlPercent,
         Notes = r.Notes,
+        Session = r.Session ?? DetermineSessionFromTime(r.StartTime),
         CreatedAt = r.StartTime,
         UpdatedAt = r.EndTime ?? r.StartTime
     };

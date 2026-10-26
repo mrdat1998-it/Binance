@@ -180,7 +180,20 @@ public record FuturesAnalysis(
     string TradingNotes,
     IctRsiEmaAnalysis? IctSetup,
     DailyBiasResult? DailyBias = null,
-    string SelectedInterval = "15m"
+    string SelectedInterval = "15m",
+    TradingSessionInfo? SessionInfo = null
+);
+
+public record TradingSessionInfo(
+    string SessionName,           // "Phiên Mỹ (New York Killzone)"
+    string SessionCode,           // "NEW_YORK", "LONDON", "ASIA", "OFF_HOURS"
+    string TimeRangeVn,           // "19:00 - 02:00 (Giờ VN)"
+    bool IsKillzone,              // true if inside London Open or NY Open Killzone
+    string LiquidityLevel,        // "CỰC ĐẠI 🔥", "CAO ⚡", "TRUNG BÌNH 📊", "MỎNG - RỦI RO ⚠️"
+    string StrategyAdvice,        // Lời khuyên chiến lược theo phiên
+    int ScoreBonus,               // Điểm cộng/trừ theo phiên
+    bool IsTradeAllowed,          // true nếu phiên này đạt chuẩn an toàn để trade
+    string StatusBadge            // "🟢 GIỜ VÀNG NEW YORK", "🟡 TÍCH LŨY PHIÊN Á", "🔴 HẠN CHẾ VÀO LỆNH"
 );
 
 public record IctRsiEmaAnalysis(
@@ -211,7 +224,8 @@ public record IctRsiEmaAnalysis(
     decimal TakeProfit3,
     decimal RiskRewardRatio,
     string LeverageRule,
-    string RiskManagementAdvice
+    string RiskManagementAdvice,
+    TradingSessionInfo? SessionInfo = null
 );
 
 public record TradeSignalRecord(
@@ -231,7 +245,8 @@ public record TradeSignalRecord(
     string Status, // "ACTIVE", "HIT_TP1", "HIT_TP2", "HIT_TP3", "HIT_SL", "CANCELLED"
     decimal? ExitPrice,
     decimal? PnlPercent,
-    string Notes
+    string Notes,
+    string? Session = null // "NEW_YORK", "LONDON", "ASIA", "OFF_HOURS"
 );
 
 public record TradeHistorySummary(

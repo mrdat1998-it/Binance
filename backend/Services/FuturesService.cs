@@ -227,7 +227,8 @@ public class FuturesService : IFuturesService
                 TradingNotes: activeNotes,
                 IctSetup: ictSetup,
                 DailyBias: dailyBias,
-                SelectedInterval: interval
+                SelectedInterval: interval,
+                SessionInfo: ictSetup.SessionInfo
             );
         }
 
@@ -265,7 +266,8 @@ public class FuturesService : IFuturesService
             TradingNotes: ictSetup.ConfluenceSummary + " " + ictSetup.RiskManagementAdvice,
             IctSetup: ictSetup,
             DailyBias: dailyBias,
-            SelectedInterval: interval
+            SelectedInterval: interval,
+            SessionInfo: ictSetup.SessionInfo
         );
     }
 
@@ -470,12 +472,17 @@ public class FuturesService : IFuturesService
         if (rsi14 >= 42m && rsi14 <= 65m) bullScore += 8;
         else if (rsi14 >= 35m && rsi14 <= 58m) bearScore += 8;
 
+        // Trụ cột 5: Điều Kiện Phiên Giao Dịch & Killzone ICT (Session Filter)
+        var session = GetTradingSessionInfo(DateTime.UtcNow);
+        bullScore += session.ScoreBonus;
+        bearScore += session.ScoreBonus;
+
         // Trừ điểm phạt: Tránh đu đỉnh khi quá mua hoặc bán đáy khi quá bán cực độ
         if (rsi14 > 72m) bullScore -= 12;
         if (rsi14 < 28m) bearScore -= 12;
 
-        bullScore = Math.Clamp(bullScore, 10, 95);
-        bearScore = Math.Clamp(bearScore, 10, 95);
+        bullScore = Math.Clamp(bullScore, 5, 98);
+        bearScore = Math.Clamp(bearScore, 5, 98);
 
         // 5. NGUYÊN TẮC QUẢN TRỊ RỦI RO: CHỈ KHI HỘI TỤ ĐỦ ĐIỀU KIỆN ĐẢM BẢO TRÊN 70% (> 70%) MỚI CHO LỆNH!
         const int CONFIDENCE_THRESHOLD = 70;
@@ -490,7 +497,21 @@ public class FuturesService : IFuturesService
         string leverageRule;
         string riskAdvice;
 
-        if (bullScore > CONFIDENCE_THRESHOLD && bullScore >= bearScore + 8)
+        if (session.SessionCode == "OFF_HOURS" && confidence < 82)
+        {
+            // Trong vùng chết 02:00 - 07:00 sáng, thanh khoản cực mỏng, từ chối mở lệnh để bảo toàn vốn
+            setupAction = $"⏸️ TẠM DỪNG GIAO DỊCH PHIÊN (VÙNG CHẾT {session.TimeRangeVn} - THANH KHOẢN MỎNG)";
+            entry = 0;
+            sl = 0;
+            tp1 = 0;
+            tp2 = 0;
+            tp3 = 0;
+            rr = 0;
+            leverageRule = "Không vào lệnh (Đứng ngoài bảo toàn vốn tránh râu nến ảo ban đêm)";
+            confluenceSummary = $"Đang trong {session.SessionName} ({session.TimeRangeVn}). Thị trường toàn cầu đóng cửa, thanh khoản mỏng, chênh lệch spread giãn. QUY TẮC BẢO VỆ TÀI KHOẢN: Không mở vị thế mới từ 02:00 - 07:00 sáng trừ khi hội tụ siêu mạnh (>= 82%).";
+            riskAdvice = "Hãy để các vị thế cũ chạy an toàn hoặc nghỉ ngơi. Không trade khi thiếu vắng dòng tiền tổ chức.";
+        }
+        else if (bullScore > CONFIDENCE_THRESHOLD && bullScore >= bearScore + 8)
         {
             // ĐỦ ĐIỀU KIỆN CHO LỆNH LONG (> 70%)
             setupAction = "MỞ VỊ THẾ LONG (MUA CANH HỒI VÙNG CẦU FVG/OB)";
@@ -504,7 +525,7 @@ public class FuturesService : IFuturesService
             rr = Math.Round((tp2 - entry) / risk, 1);
             confidence = bullScore;
 
-            confluenceSummary = $"Hội tụ {confidence}% (>70% tiêu chuẩn): 1) Đồng pha đa khung D1/H4 ({dailyBias?.D1Bias}/{dailyBias?.H4Bias}), 2) Giá duy trì trên EMA50 ({ema50:N2}), 3) Retest vùng {obType} và FVG ({fvgLow:N2} - {fvgHigh:N2}), 4) {rsiSentiment} {rsiDivergence}.";
+            confluenceSummary = $"Hội tụ {confidence}% (>70% tiêu chuẩn): 1) Đồng pha đa khung D1/H4 ({dailyBias?.D1Bias}/{dailyBias?.H4Bias}), 2) Giá duy trì trên EMA50 ({ema50:N2}), 3) Retest vùng {obType} và FVG ({fvgLow:N2} - {fvgHigh:N2}), 4) {rsiSentiment} {rsiDivergence}, 5) {session.SessionName} ({session.LiquidityLevel}).";
             leverageRule = "Khuyến nghị đòn bẩy: 5x - 10x (Cross hoặc Isolated). Tuyệt đối không dùng > 15x.";
             riskAdvice = "Quy tắc quản trị vốn: Tối đa 2% - 3% tổng vốn cho 1 lệnh. Khi giá chạm mốc TP1, dời Stop Loss về vùng giá vào lệnh (Break-even Entry) để bảo toàn 100% vốn.";
         }
@@ -522,7 +543,7 @@ public class FuturesService : IFuturesService
             rr = Math.Round((entry - tp2) / risk, 1);
             confidence = bearScore;
 
-            confluenceSummary = $"Hội tụ {confidence}% (>70% tiêu chuẩn): 1) Đồng pha đa khung D1/H4 ({dailyBias?.D1Bias}/{dailyBias?.H4Bias}), 2) Áp lực bán dưới EMA50 ({ema50:N2}), 3) Chạm cản {obType} và Bearish FVG ({fvgLow:N2} - {fvgHigh:N2}), 4) {rsiSentiment} {rsiDivergence}.";
+            confluenceSummary = $"Hội tụ {confidence}% (>70% tiêu chuẩn): 1) Đồng pha đa khung D1/H4 ({dailyBias?.D1Bias}/{dailyBias?.H4Bias}), 2) Áp lực bán dưới EMA50 ({ema50:N2}), 3) Chạm cản {obType} và Bearish FVG ({fvgLow:N2} - {fvgHigh:N2}), 4) {rsiSentiment} {rsiDivergence}, 5) {session.SessionName} ({session.LiquidityLevel}).";
             leverageRule = "Khuyến nghị đòn bẩy: 5x - 10x (Cross hoặc Isolated). Tuyệt đối không dùng > 15x.";
             riskAdvice = "Quy tắc quản trị vốn: Tối đa 2% - 3% tổng vốn cho 1 lệnh. Khi giá chạm mốc TP1, dời Stop Loss về vùng giá vào lệnh (Break-even Entry) để bảo toàn 100% vốn.";
         }
@@ -569,7 +590,8 @@ public class FuturesService : IFuturesService
             TakeProfit3: tp3,
             RiskRewardRatio: rr,
             LeverageRule: leverageRule,
-            RiskManagementAdvice: riskAdvice
+            RiskManagementAdvice: riskAdvice,
+            SessionInfo: session
         );
     }
 
@@ -613,6 +635,78 @@ public class FuturesService : IFuturesService
         return 100m - (100m / (1m + rs));
     }
 
+    public static TradingSessionInfo GetTradingSessionInfo(DateTime? utcTime = null)
+    {
+        var utc = utcTime ?? DateTime.UtcNow;
+        var vnTime = utc.AddHours(7); // Giờ Việt Nam (UTC+7)
+        int hour = vnTime.Hour;
+        int minute = vnTime.Minute;
+        decimal timeDecimal = hour + (minute / 60m);
+
+        // 1. PHIÊN MỸ (NEW YORK SESSION): 19:00 - 02:00 Giờ VN
+        if (timeDecimal >= 19.0m || timeDecimal < 2.0m)
+        {
+            bool isKillzone = timeDecimal >= 19.5m && timeDecimal <= 23.5m; // 19:30 - 23:30 New York Open Killzone
+            return new TradingSessionInfo(
+                SessionName: isKillzone ? "Phiên Mỹ (New York Open Killzone 🔥)" : "Phiên Mỹ (New York Session)",
+                SessionCode: "NEW_YORK",
+                TimeRangeVn: "19:00 - 02:00 (Giờ VN)",
+                IsKillzone: isKillzone,
+                LiquidityLevel: "CỰC ĐẠI 🔥 (Dòng tiền tổ chức & Quỹ ETF Mỹ)",
+                StrategyAdvice: "Thanh khoản lớn nhất toàn cầu. Thích hợp đánh bứt phá (Breakout) & theo sóng lớn. Tỷ lệ cán TP2, TP3 cao nhất.",
+                ScoreBonus: isKillzone ? 10 : 7,
+                IsTradeAllowed: true,
+                StatusBadge: isKillzone ? "🟢 GIỜ KIM CƯƠNG NEW YORK" : "🟢 PHIÊN MỸ SÔI ĐỘNG"
+            );
+        }
+
+        // 2. PHIÊN ÂU (LONDON SESSION): 14:00 - 19:00 Giờ VN
+        if (timeDecimal >= 14.0m && timeDecimal < 19.0m)
+        {
+            bool isKillzone = timeDecimal >= 14.0m && timeDecimal <= 17.5m; // 14:00 - 17:30 London Open Killzone
+            return new TradingSessionInfo(
+                SessionName: isKillzone ? "Phiên Âu (London Open Killzone ⚡)" : "Phiên Âu (London Session)",
+                SessionCode: "LONDON",
+                TimeRangeVn: "14:00 - 19:00 (Giờ VN)",
+                IsKillzone: isKillzone,
+                LiquidityLevel: "CAO ⚡ (London Judas Swing)",
+                StrategyAdvice: "Bẫy giá giả mạo (Judas Swing) quét thanh khoản đỉnh/đáy phiên Á, sau đó xác lập xu hướng ngày.",
+                ScoreBonus: isKillzone ? 8 : 5,
+                IsTradeAllowed: true,
+                StatusBadge: isKillzone ? "🟢 GIỜ VÀNG LONDON OPEN" : "🟢 PHIÊN ÂU SÔI ĐỘNG"
+            );
+        }
+
+        // 3. PHIÊN Á (ASIAN SESSION / TOKYO - SYDNEY): 07:00 - 14:00 Giờ VN
+        if (timeDecimal >= 7.0m && timeDecimal < 14.0m)
+        {
+            return new TradingSessionInfo(
+                SessionName: "Phiên Á (Asian Range / Tokyo ⛩️)",
+                SessionCode: "ASIA",
+                TimeRangeVn: "07:00 - 14:00 (Giờ VN)",
+                IsKillzone: false,
+                LiquidityLevel: "TRUNG BÌNH 📊 (Tích lũy biên độ)",
+                StrategyAdvice: "Thị trường thường đi ngang tích lũy tạo biên độ (Asian Range). Khuyên ưu tiên chốt lời gần tại TP1 (1.5R) hoặc gom đón sóng phiên Âu.",
+                ScoreBonus: 3,
+                IsTradeAllowed: true,
+                StatusBadge: "🟡 TÍCH LŨY PHIÊN Á"
+            );
+        }
+
+        // 4. VÙNG CHẾT (OFF-HOURS / DEAD ZONE): 02:00 - 07:00 Giờ VN
+        return new TradingSessionInfo(
+            SessionName: "Vùng Chết (Off-Hours / Low Liquidity 🌙)",
+            SessionCode: "OFF_HOURS",
+            TimeRangeVn: "02:00 - 07:00 (Giờ VN)",
+            IsKillzone: false,
+            LiquidityLevel: "MỎNG - RỦI RO CAO ⚠️",
+            StrategyAdvice: "Cả London và New York đã đóng cửa. Thanh khoản cực mỏng, spread giãn, râu nến ảo quét SL bất thường. Khuyên ĐỨNG NGOÀI bảo toàn vốn.",
+            ScoreBonus: -15, // Trừ điểm phạt nặng
+            IsTradeAllowed: false, // Chặn mở lệnh thông thường
+            StatusBadge: "🔴 HẠN CHẾ VÀO LỆNH (THANH KHOẢN MỎNG)"
+        );
+    }
+
     private static IctRsiEmaAnalysis CreateDefaultIctAnalysis(decimal price)
     {
         return new IctRsiEmaAnalysis(
@@ -643,7 +737,8 @@ public class FuturesService : IFuturesService
             TakeProfit3: 0,
             RiskRewardRatio: 0,
             LeverageRule: "Không vào lệnh (Đang đồng bộ dữ liệu)",
-            RiskManagementAdvice: "Chỉ giải ngân khi hội tụ đủ điều kiện > 70%."
+            RiskManagementAdvice: "Chỉ giải ngân khi hội tụ đủ điều kiện > 70%.",
+            SessionInfo: GetTradingSessionInfo(DateTime.UtcNow)
         );
     }
 

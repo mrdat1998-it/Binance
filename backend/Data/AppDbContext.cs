@@ -30,8 +30,10 @@ public class AppDbContext : DbContext
             entity.HasIndex(e => e.Symbol);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.StartTime);
+            entity.HasIndex(e => e.Session);
             entity.HasIndex(e => new { e.Symbol, e.Status });
 
+            entity.Property(e => e.Session).HasMaxLength(32);
             entity.Property(e => e.StartTime).HasConversion(utcConverter);
             entity.Property(e => e.EndTime).HasConversion(nullableUtcConverter);
             entity.Property(e => e.CreatedAt).HasConversion(utcConverter);
