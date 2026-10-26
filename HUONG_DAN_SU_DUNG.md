@@ -10,6 +10,9 @@
 3. [Chi Tiết Các Thành Phần Trên Giao Diện Dashboard](#3-chi-tiết-các-thành-phần-trên-giao-diện-dashboard)
 4. [Phương Pháp & Thuật Toán Giao Dịch (ICT / SMC Confluence)](#4-phương-pháp--thuật-toán-giao-dịch-ict--smc-confluence)
 5. [Quy Tắc Quản Trị Rủi Ro & Cơ Chế Nhật Ký Lệnh (Trade Journal)](#5-quy-tắc-quản-trị-rủi-ro--cơ-chế-nhật-ký-lệnh-trade-journal)
+   * [5.1. Ba Nguyên Tắc Sống Còn Trong Quản Trị Vốn](#51-ba-nguyên-tắc-sống-còn-trong-quản-trị-vốn)
+   * [5.2. Cách Đọc Dữ Liệu Trên Bảng Nhật Ký Lệnh](#52-cách-đọc-dữ-liệu-trên-bảng-nhật-ký-lệnh)
+   * [5.3. Bảng Tra Cứu Phân Bổ Vốn 50$ (Đòn Bẩy, SL Mất Bao Nhiêu & TP Lãi Bao Nhiêu)](#53-bảng-tra-cứu-phân-bổ-vốn-50-đòn-bẩy-sl-mất-bao-nhiêu--tp-lãi-bao-nhiêu)
 6. [Cơ Chế Vận Hành Tự Động 24/7 Khi Tắt Dự Án](#6-cơ-chế-vận-hành-tự-động-247-khi-tắt-dự-án)
 7. [Xử Lý Sự Cố Thường Gặp (Troubleshooting & FAQ)](#7-xử-lý-sự-cố-thường-gặp-troubleshooting--faq)
 
@@ -191,6 +194,48 @@ Bảng **"Bảng Lưu Trữ Lịch Sử Lệnh & Giám Sát Kết Quả (Entry -
   * `🛑 Dính SL`: Chạm ngưỡng cắt lỗ kỷ luật để bảo vệ vốn.
 * **Hiệu Suất PnL**: Tính toán chính xác phần trăm lãi/lỗ dựa trên tỷ lệ chênh lệch giá Entry và Exit.
 * **Ghi Chú Kỹ Thuật**: Liệt kê chi tiết lý do vào lệnh (hội tụ đa khung, vị trí FVG, Order Block, RSI...).
+
+### 5.3. Bảng Tra Cứu Phân Bổ Vốn 50$ (Đòn Bẩy, SL Mất Bao Nhiêu & TP Lãi Bao Nhiêu)
+
+Khi tham gia giao dịch Futures với ngân sách **$50 USDT tiền ký quỹ (Margin)** cho mỗi lệnh, bài toán cốt lõi là: *Chọn đòn bẩy bao nhiêu để vừa có khoảng Stop Loss đủ rộng chống quét râu nến (wick hunting), vừa kiểm soát số tiền mất ở mức nhỏ nhất khi thị trường đảo chiều bất lợi?*
+
+#### 1. Nguyên Tắc Tránh Quét Râu (Wick Protection)
+* **Biên độ quét râu nến thông thường**:
+  * **BTC / ETH**: Râu giật trung bình dao động từ `1.2% - 2.2%`. Do đó, khoảng cách Stop Loss an toàn phải duy trì từ **2.0% đến 2.5%** tính từ giá Entry (đặt dưới đáy Order Block hoặc FVG).
+  * **Altcoin (SOL, NEAR)**: Biên độ biến động lớn hơn, râu giật `2.5% - 3.5%`. Khoảng cách SL an toàn tối thiểu nên là **3.0% đến 4.0%**.
+* **Hậu quả của đòn bẩy quá cao (20x, 50x)**: Với đòn bẩy 20x hay 50x, mức chịu đựng giá chỉ có `0.8% - 1.5%`. Chỉ cần một cây nến giật nhẹ trong phiên là lệnh đã bị thanh lý hoặc dính SL trước khi thị trường kịp bứt phá đúng hướng dự đoán.
+
+#### 2. Công Thức Tính Toán Định Lượng
+$$\text{Quy Mô Vị Thế (Position Size)} = \text{Vốn Ký Quỹ (Margin)} \times \text{Đòn Bẩy (Leverage)}$$
+$$\text{Số Tiền Mất Khi Dính SL (USDT)} = \text{Quy Mô Vị Thế} \times \text{Khoảng Cách SL (\%)} = \text{Margin} \times \text{Đòn Bẩy} \times \text{Khoảng Cách SL (\%)} $$
+$$\text{Tỷ Lệ Mất Trên Vốn Bỏ Ra (\%)} = \text{Đòn Bẩy} \times \text{Khoảng Cách SL (\%)} $$
+
+#### 3. Bảng Tra Cứu Chi Tiết Với Vốn Bỏ Ra 50$ Margin
+
+| Mức Đòn Bẩy | Quy Mô Vị Thế | Khoảng Cách SL Chống Quét | **Số Tiền Mất Khi Dính SL** | Tỷ Lệ Mất Trên Vốn $50 | Tiền Còn Lại Bảo Vệ Được | Chạm TP1 (+3.3%) | Chạm TP2 (+5.5%) | Đánh Giá Khuyên Dùng |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| **3x (Bảo Thủ)** | $150 USDT | 2.5% - 3.5% | **-$3.75 đến -$5.25** | Mất 7.5% - 10.5% | **$44.75 - $46.25** (Giữ 90% vốn) | +$4.95 (+9.9%) | +$8.25 (+16.5%) | Cực kỳ an toàn, thích hợp giai đoạn thị trường biến động giông bão. |
+| **5x (KHUYÊN DÙNG)** | **$250 USDT** | **2.2% - 3.0%** | **-$5.50 đến -$7.50** | **Mất 11.0% - 15.0%** | **$42.50 - $44.50** (Giữ 85% - 89% vốn) | **+$8.25 (+16.5%)** | **+$13.75 (+27.5%)** | 🌟 **Tối ưu nhất**: SL rộng rãi tránh quét râu, thua mất rất ít ($5 - $7), ăn thì đậm ($13 - $21). |
+| **10x (Tiêu Chuẩn)** | $500 USDT | 2.0% - 2.5% | **-$10.00 đến -$12.50** | Mất 20.0% - 25.0% | **$37.50 - $40.00** (Giữ 75% - 80% vốn) | +$16.50 (+33.0%) | +$27.50 (+55.0%) | Chỉ dùng cho BTC/ETH khi có tín hiệu phân kỳ xác nhận rất mạnh. |
+| **15x (Mạo Hiểm)** | $750 USDT | 1.8% - 2.0% | **-$13.50 đến -$15.00** | Mất 27.0% - 30.0% | **$35.00 - $36.50** (Giữ 70% vốn) | +$24.75 (+49.5%) | +$41.25 (+82.5%) | Dễ bị râu nến quét văng trước khi giá tăng, không khuyến khích. |
+| **20x (Nguy Hiểm)** | $1,000 USDT | 1.5% - 1.8% | **-$15.00 đến -$18.00** | Mất 30.0% - 36.0% | **$32.00 - $35.00** | +$33.00 (+66.0%) | +$55.00 (+110%) | ⚠️ Rủi ro quét râu cực lớn, chỉ 1 nhịp rung lắc nhẹ là mất lệnh. |
+
+#### 4. Kịch Bản Giao Dịch Mẫu Với Vốn 50$ (Đòn bẩy 5x)
+1. **Cài đặt vị thế trên Binance Futures**:
+   * Chế độ Ký Quỹ: **Isolated** (Cô lập – chỉ dùng đúng $50 cho lệnh này, không ảnh hưởng số dư tài khoản).
+   * Đòn bẩy: **5x**.
+   * Số tiền vào lệnh (Margin): **$50 USDT** $\rightarrow$ Sàn tự hiểu quy mô vị thế là **$250 USDT**.
+2. **Kịch bản xấu - Dính Stop Loss (-2.2%)**:
+   * Hệ thống tự động kích hoạt cắt lỗ kỷ luật.
+   * Số tiền mất: **-$5.50 USDT** (khoảng 140.000 VNĐ).
+   * Bạn bảo vệ được **$44.50 USDT** còn lại trong tài khoản (chỉ mất đúng 11% vốn bỏ ra). Bạn có thể thua liên tiếp 8-9 lệnh như vậy mới hao hụt một nửa vốn.
+3. **Kịch bản tốt - Chạm các mốc Take Profit**:
+   * Chạm **TP1 (+3.3%)**: Lãi **+$8.25 USDT** (+16.5% vốn $50) $\rightarrow$ Dời SL về giá vào lệnh (Break-even).
+   * Chạm **TP2 (+5.5%)**: Lãi **+$13.75 USDT** (+27.5% vốn $50).
+   * Chạm **TP3 (+8.5%)**: Lãi **+$21.25 USDT** (+42.5% vốn $50).
+
+> [!TIP]
+> **Công Cụ Mô Phỏng Trực Quan Trên Web**: Trên giao diện Dashboard [http://localhost:5166](http://localhost:5166), ngay dưới phần ICT SMC Tracker đã được trang bị thanh công cụ **"Mô Phỏng Phân Bổ Vốn Thực Chiến (Vốn Bỏ Ra 50$)"**. Bạn có thể tùy chỉnh vốn ($50, $100...) và đòn bẩy (3x, 5x, 10x) để xem bảng tính tự động cập nhật số tiền SL và TP theo giá thị trường trực tiếp.
 
 ---
 

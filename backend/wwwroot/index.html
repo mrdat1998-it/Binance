@@ -1379,6 +1379,88 @@
       box-shadow: 0 0 10px rgba(246, 70, 93, 0.25);
     }
 
+    /* MARGIN 50$ RISK SIMULATOR STYLES */
+    .margin-sim-card {
+      background: linear-gradient(135deg, rgba(16, 22, 34, 0.95) 0%, rgba(10, 14, 22, 0.95) 100%);
+      border: 1px solid rgba(240, 185, 11, 0.35);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      margin-top: 14px;
+      margin-bottom: 6px;
+    }
+    .margin-sim-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .margin-sim-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 992px) {
+      .margin-sim-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 576px) {
+      .margin-sim-grid { grid-template-columns: 1fr; }
+    }
+    .margin-sim-box {
+      background: rgba(14, 18, 28, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .msim-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.3px;
+    }
+    .msim-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .msim-sub {
+      font-size: 0.68rem;
+      color: var(--text-sub);
+    }
+    .msim-badge-red {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(246, 70, 93, 0.2);
+      color: var(--red);
+    }
+    .msim-badge-green {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(14, 203, 129, 0.2);
+      color: var(--green);
+    }
+    .msim-footer {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 6px;
+      font-size: 0.76rem;
+      color: #d1d4dc;
+      border-left: 3px solid #00e5ff;
+      line-height: 1.45;
+    }
+
     .daily-bias-card {
       background: linear-gradient(135deg, rgba(20, 26, 38, 0.95) 0%, rgba(13, 17, 26, 0.95) 100%);
       border: 1px solid rgba(41, 98, 255, 0.35);
@@ -2162,6 +2244,76 @@
           </div>
           <div style="font-size:0.75rem; color:var(--text-muted); line-height:1.45; margin-top:6px; border-top:1px dashed rgba(255,255,255,0.08); padding-top:6px;" id="ict-risk-rule">
             Quy tắc quản trị vốn: Tối đa 2% - 3% tổng vốn cho 1 lệnh. Khi giá chạm mốc TP1, dời Stop Loss về vùng giá vào lệnh (Break-even Entry) để bảo toàn 100% vốn.
+          </div>
+        </div>
+
+        <!-- 50$ MARGIN POSITION SIZING & RISK SIMULATOR -->
+        <div class="margin-sim-card">
+          <div class="margin-sim-header">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-yellow);"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>
+              <span style="font-weight:800; font-size:0.85rem; color:#fff; text-transform:uppercase; letter-spacing:0.5px;">
+                Mô Phỏng Phân Bổ Vốn Thực Chiến (Vốn Bỏ Ra 50$)
+              </span>
+              <span class="brand-tag" style="background:rgba(240,185,11,0.15); color:var(--accent-yellow); font-size:0.7rem;">Kỷ Luật Quản Trị Rủi Ro</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span style="font-size:0.75rem; color:var(--text-muted);">Vốn Ký Quỹ:</span>
+              <div style="display:inline-flex; align-items:center; gap:4px;">
+                <input type="number" id="sim-margin-input" value="50" min="5" max="5000" step="5" oninput="updateMarginSim()" style="width:65px; background:rgba(0,0,0,0.6); border:1px solid rgba(240,185,11,0.5); color:#fff; font-family:'JetBrains Mono'; font-weight:700; padding:3px 6px; border-radius:4px; text-align:center;">
+                <span style="color:var(--accent-yellow); font-weight:700; font-size:0.75rem;">USDT</span>
+              </div>
+              <span style="font-size:0.75rem; color:var(--text-muted); margin-left:4px;">Đòn Bẩy:</span>
+              <select id="sim-lev-select" onchange="updateMarginSim()" style="background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.25); color:#fff; font-family:'JetBrains Mono'; font-weight:700; padding:3px 6px; border-radius:4px; font-size:0.75rem;">
+                <option value="5" selected>5x (Khuyên Dùng)</option>
+                <option value="10">10x (Tiêu Chuẩn)</option>
+                <option value="3">3x (Bảo Thủ)</option>
+                <option value="15">15x (Mạo Hiểm)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="margin-sim-grid">
+            <!-- CỘT 1: VỊ THẾ TỔNG -->
+            <div class="margin-sim-box">
+              <span class="msim-label">Tổng Quy Mô Vị Thế</span>
+              <span class="msim-val" id="msim-pos-size" style="color:#00e5ff;">$250.00</span>
+              <span class="msim-sub" id="msim-coin-amt">Quy mô mở lệnh trên sàn</span>
+            </div>
+
+            <!-- CỘT 2: KHI DÍNH SL (MẤT BAO NHIÊU) -->
+            <div class="margin-sim-box" style="border-color:rgba(246,70,93,0.35); background:rgba(246,70,93,0.06);">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="msim-label" style="color:var(--red);">🛑 KHI CHẠM STOP LOSS</span>
+                <span class="msim-badge-red" id="msim-sl-pct">-2.20%</span>
+              </div>
+              <span class="msim-val" id="msim-sl-loss" style="color:var(--red); font-size:1.2rem;">-$5.50 USDT</span>
+              <span class="msim-sub" id="msim-sl-note">Mất 11.0% vốn $50 • Còn lại $44.50</span>
+            </div>
+
+            <!-- CỘT 3: KHI CHẠM TP1 -->
+            <div class="margin-sim-box">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="msim-label" style="color:var(--green);">🎯 CHẠM TP1 (1.5R)</span>
+                <span class="msim-badge-green" id="msim-tp1-pct">+3.30%</span>
+              </div>
+              <span class="msim-val" id="msim-tp1-win" style="color:var(--green);">+$8.25 USDT</span>
+              <span class="msim-sub">Thu hồi rủi ro • Dời SL hòa vốn</span>
+            </div>
+
+            <!-- CỘT 4: KHI CHẠM TP2 -->
+            <div class="margin-sim-box" style="border-color:rgba(14,203,129,0.35); background:rgba(14,203,129,0.06);">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="msim-label" style="color:var(--green);">🏆 CHẠM TP2 (2.5R)</span>
+                <span class="msim-badge-green" id="msim-tp2-pct">+5.50%</span>
+              </div>
+              <span class="msim-val" id="msim-tp2-win" style="color:#00ff88; font-size:1.2rem;">+$13.75 USDT</span>
+              <span class="msim-sub">Lãi +27.5% trên vốn $50</span>
+            </div>
+          </div>
+
+          <div class="msim-footer" id="msim-footer-summary">
+            🛡️ <b>Đánh giá an toàn:</b> Bỏ ra $50 Margin (đòn bẩy 5x = Vị thế $250). Nếu dính Stop Loss, bạn <b>chỉ mất đúng $5.50 USDT</b> (giữ lại $44.50 vốn). Khoảng cách SL rộng đủ để chống râu nến quét.
           </div>
         </div>
       </div>
@@ -3659,6 +3811,7 @@
 
           // Redraw chart with new overlay
           renderChart();
+          updateMarginSim();
         }
       } catch (err) {
         console.warn('Error loadFuturesData:', err);
@@ -3724,6 +3877,72 @@
         else if (sess.sessionCode === 'OFF_HOURS') badgeClass = 'badge-session badge-session-off';
         ictSessEl.className = badgeClass;
         ictSessEl.innerText = `${sess.statusBadge}`;
+      }
+    }
+
+    function updateMarginSim() {
+      const marginInput = document.getElementById('sim-margin-input');
+      const levSelect = document.getElementById('sim-lev-select');
+      if (!marginInput || !levSelect) return;
+
+      const margin = Math.max(5, Number(marginInput.value) || 50);
+      const lev = Number(levSelect.value) || 5;
+      const posSize = margin * lev;
+
+      const posSizeEl = document.getElementById('msim-pos-size');
+      if (posSizeEl) posSizeEl.innerText = `$${posSize.toFixed(2)}`;
+
+      let entry = currentIctSetup && currentIctSetup.optimalEntry > 0 ? Number(currentIctSetup.optimalEntry) : currentPrice;
+      let sl = currentIctSetup && currentIctSetup.stopLoss > 0 ? Number(currentIctSetup.stopLoss) : (entry * 0.978);
+      let tp1 = currentIctSetup && currentIctSetup.takeProfit1 > 0 ? Number(currentIctSetup.takeProfit1) : (entry * 1.033);
+      let tp2 = currentIctSetup && currentIctSetup.takeProfit2 > 0 ? Number(currentIctSetup.takeProfit2) : (entry * 1.055);
+
+      let slDistPct = entry > 0 ? (Math.abs(entry - sl) / entry) * 100 : 2.2;
+      let tp1DistPct = entry > 0 ? (Math.abs(tp1 - entry) / entry) * 100 : 3.3;
+      let tp2DistPct = entry > 0 ? (Math.abs(tp2 - entry) / entry) * 100 : 5.5;
+
+      slDistPct = Math.max(0.5, slDistPct);
+      tp1DistPct = Math.max(1.0, tp1DistPct);
+      tp2DistPct = Math.max(1.5, tp2DistPct);
+
+      const slLossUsd = posSize * (slDistPct / 100);
+      const lossPctOnMargin = (slLossUsd / margin) * 100;
+      const remainingMargin = Math.max(0, margin - slLossUsd);
+
+      const tp1WinUsd = posSize * (tp1DistPct / 100);
+      const tp2WinUsd = posSize * (tp2DistPct / 100);
+      const winPctTp2 = (tp2WinUsd / margin) * 100;
+
+      const coinAmtEl = document.getElementById('msim-coin-amt');
+      if (coinAmtEl && entry > 0) {
+        const amt = posSize / entry;
+        coinAmtEl.innerText = `${amt >= 10 ? amt.toFixed(2) : amt.toFixed(4)} ${currentSymbol.replace('USDT', '')}`;
+      }
+
+      const slPctEl = document.getElementById('msim-sl-pct');
+      if (slPctEl) slPctEl.innerText = `-${slDistPct.toFixed(2)}%`;
+
+      const slLossEl = document.getElementById('msim-sl-loss');
+      if (slLossEl) slLossEl.innerText = `-$${slLossUsd.toFixed(2)} USDT`;
+
+      const slNoteEl = document.getElementById('msim-sl-note');
+      if (slNoteEl) slNoteEl.innerText = `Mất ${lossPctOnMargin.toFixed(1)}% vốn $${margin} • Còn $${remainingMargin.toFixed(2)}`;
+
+      const tp1PctEl = document.getElementById('msim-tp1-pct');
+      if (tp1PctEl) tp1PctEl.innerText = `+${tp1DistPct.toFixed(2)}%`;
+
+      const tp1WinEl = document.getElementById('msim-tp1-win');
+      if (tp1WinEl) tp1WinEl.innerText = `+$${tp1WinUsd.toFixed(2)} USDT`;
+
+      const tp2PctEl = document.getElementById('msim-tp2-pct');
+      if (tp2PctEl) tp2PctEl.innerText = `+${tp2DistPct.toFixed(2)}%`;
+
+      const tp2WinEl = document.getElementById('msim-tp2-win');
+      if (tp2WinEl) tp2WinEl.innerText = `+$${tp2WinUsd.toFixed(2)} USDT`;
+
+      const footerEl = document.getElementById('msim-footer-summary');
+      if (footerEl) {
+        footerEl.innerHTML = `🛡️ <b>Đánh giá an toàn vốn:</b> Bỏ ra <b>$${margin} Margin</b> (đòn bẩy ${lev}x = Vị thế $${posSize.toFixed(0)}). Nếu dính Stop Loss (-${slDistPct.toFixed(2)}%), bạn <b>chỉ mất đúng $${slLossUsd.toFixed(2)} USDT</b> (giữ lại $${remainingMargin.toFixed(2)} vốn, tương đương ${(100 - lossPctOnMargin).toFixed(1)}%). Đạt TP2 bạn lãi <b>+$${tp2WinUsd.toFixed(2)} USDT (+${winPctTp2.toFixed(1)}%)</b>.`;
       }
     }
 
