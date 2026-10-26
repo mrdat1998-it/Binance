@@ -2465,12 +2465,11 @@
               <th>Trạng Thái</th>
               <th>Thời Điểm Đóng (Giờ VN)</th>
               <th>Hiệu Suất PnL</th>
-              <th>Ghi Chú Kỹ Thuật</th>
             </tr>
           </thead>
           <tbody id="journal-tbody">
             <tr>
-              <td colspan="12" style="text-align:center; padding:30px; color:var(--text-muted);">
+              <td colspan="11" style="text-align:center; padding:30px; color:var(--text-muted);">
                 Đang tải nhật ký lệnh giao dịch...
               </td>
             </tr>
@@ -4050,7 +4049,7 @@
       if (!tbody) return;
 
       if (!data.records || data.records.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:30px; color:var(--text-muted);">Chưa có lệnh nào được lưu cho bộ lọc này. Hệ thống chỉ tự động ghi nhận khi hội tụ đủ điều kiện &gt; 70%.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:30px; color:var(--text-muted);">Chưa có lệnh nào được lưu cho bộ lọc này. Hệ thống chỉ tự động ghi nhận khi hội tụ đủ điều kiện &gt; 70%.</td></tr>`;
         return;
       }
 
@@ -4113,7 +4112,6 @@
             <td>${statusBadge}</td>
             <td style="font-family:'JetBrains Mono'; font-size:0.75rem; color:#b7bdc6;">${endStr}</td>
             <td>${pnlDisplay}</td>
-            <td style="max-width:280px; font-size:0.72rem; color:var(--text-sub); white-space:normal; line-height:1.35;">${r.notes || ''}</td>
           </tr>
         `;
       }).join('');

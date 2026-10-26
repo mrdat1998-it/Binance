@@ -193,7 +193,6 @@ Bảng **"Bảng Lưu Trữ Lịch Sử Lệnh & Giám Sát Kết Quả (Entry -
   * `🚀 Chạm TP3 Max`: Đạt lợi nhuận cực đại.
   * `🛑 Dính SL`: Chạm ngưỡng cắt lỗ kỷ luật để bảo vệ vốn.
 * **Hiệu Suất PnL**: Tính toán chính xác phần trăm lãi/lỗ dựa trên tỷ lệ chênh lệch giá Entry và Exit.
-* **Ghi Chú Kỹ Thuật**: Liệt kê chi tiết lý do vào lệnh (hội tụ đa khung, vị trí FVG, Order Block, RSI...).
 
 ### 5.3. Bảng Tra Cứu Phân Bổ Vốn 50$ (Đòn Bẩy, SL Mất Bao Nhiêu & TP Lãi Bao Nhiêu)
 
