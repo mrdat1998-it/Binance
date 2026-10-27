@@ -513,39 +513,69 @@ public class FuturesService : IFuturesService
         }
         else if (bullScore > CONFIDENCE_THRESHOLD && bullScore >= bearScore + 8)
         {
-            // ĐỦ ĐIỀU KIỆN CHO LỆNH LONG (> 70%)
-            setupAction = "MỞ VỊ THẾ LONG (MUA CANH HỒI VÙNG CẦU FVG/OB)";
-            entry = Math.Round(Math.Max(fvgLow, Math.Min(currentPrice, currentPrice * 0.995m)), 2);
-            sl = Math.Round(Math.Min(obLow, currentPrice * 0.978m), 2);
-            decimal risk = Math.Max(entry * 0.008m, entry - sl);
+            // BỘ LỌC ĐA KHUNG VĨ MÔ (HARD GATE): TUYỆT ĐỐI KHÔNG LONG KHI D1 HOẶC H4 LÀ BEARISH!
+            if (dailyBias != null && (dailyBias.D1Bias == "BEARISH" || dailyBias.H4Bias == "BEARISH"))
+            {
+                string conflictReason = dailyBias.D1Bias == "BEARISH" 
+                    ? "khung Ngày (D1) đang là BEARISH (Xu hướng vĩ mô Giảm)" 
+                    : "khung 4 Giờ (H4) đang là BEARISH (Sóng trung hạn Giảm)";
+                setupAction = "⏸️ CHỜ ĐỢI / ĐỨNG NGOÀI (CẤM LONG NGƯỢC XU HƯỚNG D1/H4)";
+                entry = 0; sl = 0; tp1 = 0; tp2 = 0; tp3 = 0; rr = 0;
+                leverageRule = "Không vào lệnh (Bảo toàn 100% vốn)";
+                confluenceSummary = $"Tín hiệu M15 bật tăng đạt {bullScore}% nhưng BỊ TỪ CHỐI do {conflictReason}. KỶ LUẬT ICT/SMC BẢO TOÀN VỐN: Tuyệt đối không mở lệnh LONG bắt đáy dao rơi khi xu hướng lớn D1/H4 đang Giảm. Kiên nhẫn chờ hồi lên cản để tìm điểm SHORT thuận xu hướng.";
+                riskAdvice = "Giao dịch ngược xu hướng khung D1/H4 là nguyên nhân hàng đầu gây cháy tài khoản. Hãy kiên nhẫn đứng ngoài.";
+            }
+            else
+            {
+                // ĐỦ ĐIỀU KIỆN CHO LỆNH LONG (> 70% VÀ ĐỒNG PHA VĨ MÔ)
+                setupAction = "MỞ VỊ THẾ LONG (MUA CANH HỒI VÙNG CẦU FVG/OB)";
+                entry = Math.Round(Math.Max(fvgLow, Math.Min(currentPrice, currentPrice * 0.995m)), 2);
+                sl = Math.Round(Math.Min(obLow, currentPrice * 0.978m), 2);
+                decimal risk = Math.Max(entry * 0.008m, entry - sl);
 
-            tp1 = Math.Round(entry + risk * 1.5m, 2);
-            tp2 = Math.Round(Math.Max(swingHigh, entry + risk * 2.5m), 2);
-            tp3 = Math.Round(entry + risk * 3.8m, 2);
-            rr = Math.Round((tp2 - entry) / risk, 1);
-            confidence = bullScore;
+                tp1 = Math.Round(entry + risk * 1.5m, 2);
+                tp2 = Math.Round(Math.Max(swingHigh, entry + risk * 2.5m), 2);
+                tp3 = Math.Round(entry + risk * 3.8m, 2);
+                rr = Math.Round((tp2 - entry) / risk, 1);
+                confidence = bullScore;
 
-            confluenceSummary = $"Hội tụ {confidence}% (>70% tiêu chuẩn): 1) Đồng pha đa khung D1/H4 ({dailyBias?.D1Bias}/{dailyBias?.H4Bias}), 2) Giá duy trì trên EMA50 ({ema50:N2}), 3) Retest vùng {obType} và FVG ({fvgLow:N2} - {fvgHigh:N2}), 4) {rsiSentiment} {rsiDivergence}, 5) {session.SessionName} ({session.LiquidityLevel}).";
-            leverageRule = "Khuyến nghị đòn bẩy: 5x - 10x (Cross hoặc Isolated). Tuyệt đối không dùng > 15x.";
-            riskAdvice = "Quy tắc quản trị vốn: Tối đa 2% - 3% tổng vốn cho 1 lệnh. Khi giá chạm mốc TP1, dời Stop Loss về vùng giá vào lệnh (Break-even Entry) để bảo toàn 100% vốn.";
+                confluenceSummary = $"Hội tụ {confidence}% (>70% tiêu chuẩn): 1) Đồng pha đa khung D1/H4 ({dailyBias?.D1Bias}/{dailyBias?.H4Bias}), 2) Giá duy trì trên EMA50 ({ema50:N2}), 3) Retest vùng {obType} và FVG ({fvgLow:N2} - {fvgHigh:N2}), 4) {rsiSentiment} {rsiDivergence}, 5) {session.SessionName} ({session.LiquidityLevel}).";
+                leverageRule = "Khuyến nghị đòn bẩy: 5x - 10x (Cross hoặc Isolated). Tuyệt đối không dùng > 15x.";
+                riskAdvice = "Quy tắc quản trị vốn: Tối đa 2% - 3% tổng vốn cho 1 lệnh. Khi giá chạm mốc TP1, dời Stop Loss về vùng giá vào lệnh (Break-even Entry) để bảo toàn 100% vốn.";
+            }
         }
         else if (bearScore > CONFIDENCE_THRESHOLD && bearScore >= bullScore + 8)
         {
-            // ĐỦ ĐIỀU KIỆN CHO LỆNH SHORT (> 70%)
-            setupAction = "MỞ VỊ THẾ SHORT (BÁN CANH TEST KHÁNG CỰ FVG/OB)";
-            entry = Math.Round(Math.Min(fvgHigh, Math.Max(currentPrice, currentPrice * 1.005m)), 2);
-            sl = Math.Round(Math.Max(obHigh, currentPrice * 1.022m), 2);
-            decimal risk = Math.Max(entry * 0.008m, sl - entry);
+            // BỘ LỌC ĐA KHUNG VĨ MÔ (HARD GATE): TUYỆT ĐỐI KHÔNG SHORT KHI D1 HOẶC H4 LÀ BULLISH!
+            if (dailyBias != null && (dailyBias.D1Bias == "BULLISH" || dailyBias.H4Bias == "BULLISH"))
+            {
+                string conflictReason = dailyBias.D1Bias == "BULLISH" 
+                    ? "khung Ngày (D1) đang là BULLISH (Xu hướng vĩ mô Tăng)" 
+                    : "khung 4 Giờ (H4) đang là BULLISH (Sóng trung hạn Tăng)";
+                setupAction = "⏸️ CHỜ ĐỢI / ĐỨNG NGOÀI (CẤM SHORT CHẶN ĐẦU TÀU D1/H4)";
+                entry = 0; sl = 0; tp1 = 0; tp2 = 0; tp3 = 0; rr = 0;
+                leverageRule = "Không vào lệnh (Bảo toàn 100% vốn)";
+                confluenceSummary = $"Tín hiệu M15 giảm giá đạt {bearScore}% nhưng BỊ TỪ CHỐI do {conflictReason}. KỶ LUẬT ICT/SMC BẢO TOÀN VỐN: Tuyệt đối không mở lệnh SHORT chặn đầu xu hướng khi khung D1/H4 đang Tăng mạnh. Kiên nhẫn chờ nhịp điều chỉnh về vùng cầu để LONG thuận xu hướng.";
+                riskAdvice = "Bán khống ngược sóng tăng khung Ngày là rủi ro lớn nhất. Hãy kiên nhẫn đứng ngoài.";
+            }
+            else
+            {
+                // ĐỦ ĐIỀU KIỆN CHO LỆNH SHORT (> 70% VÀ ĐỒNG PHA VĨ MÔ)
+                setupAction = "MỞ VỊ THẾ SHORT (BÁN CANH TEST KHÁNG CỰ FVG/OB)";
+                entry = Math.Round(Math.Min(fvgHigh, Math.Max(currentPrice, currentPrice * 1.005m)), 2);
+                sl = Math.Round(Math.Max(obHigh, currentPrice * 1.022m), 2);
+                decimal risk = Math.Max(entry * 0.008m, sl - entry);
 
-            tp1 = Math.Round(entry - risk * 1.5m, 2);
-            tp2 = Math.Round(Math.Min(swingLow, entry - risk * 2.5m), 2);
-            tp3 = Math.Round(entry - risk * 3.8m, 2);
-            rr = Math.Round((entry - tp2) / risk, 1);
-            confidence = bearScore;
+                tp1 = Math.Round(entry - risk * 1.5m, 2);
+                tp2 = Math.Round(Math.Min(swingLow, entry - risk * 2.5m), 2);
+                tp3 = Math.Round(entry - risk * 3.8m, 2);
+                rr = Math.Round((entry - tp2) / risk, 1);
+                confidence = bearScore;
 
-            confluenceSummary = $"Hội tụ {confidence}% (>70% tiêu chuẩn): 1) Đồng pha đa khung D1/H4 ({dailyBias?.D1Bias}/{dailyBias?.H4Bias}), 2) Áp lực bán dưới EMA50 ({ema50:N2}), 3) Chạm cản {obType} và Bearish FVG ({fvgLow:N2} - {fvgHigh:N2}), 4) {rsiSentiment} {rsiDivergence}, 5) {session.SessionName} ({session.LiquidityLevel}).";
-            leverageRule = "Khuyến nghị đòn bẩy: 5x - 10x (Cross hoặc Isolated). Tuyệt đối không dùng > 15x.";
-            riskAdvice = "Quy tắc quản trị vốn: Tối đa 2% - 3% tổng vốn cho 1 lệnh. Khi giá chạm mốc TP1, dời Stop Loss về vùng giá vào lệnh (Break-even Entry) để bảo toàn 100% vốn.";
+                confluenceSummary = $"Hội tụ {confidence}% (>70% tiêu chuẩn): 1) Đồng pha đa khung D1/H4 ({dailyBias?.D1Bias}/{dailyBias?.H4Bias}), 2) Áp lực bán dưới EMA50 ({ema50:N2}), 3) Chạm cản {obType} và Bearish FVG ({fvgLow:N2} - {fvgHigh:N2}), 4) {rsiSentiment} {rsiDivergence}, 5) {session.SessionName} ({session.LiquidityLevel}).";
+                leverageRule = "Khuyến nghị đòn bẩy: 5x - 10x (Cross hoặc Isolated). Tuyệt đối không dùng > 15x.";
+                riskAdvice = "Quy tắc quản trị vốn: Tối đa 2% - 3% tổng vốn cho 1 lệnh. Khi giá chạm mốc TP1, dời Stop Loss về vùng giá vào lệnh (Break-even Entry) để bảo toàn 100% vốn.";
+            }
         }
         else
         {
