@@ -36,7 +36,7 @@ try {
         Write-Host ">>> CHÚC MỪNG: CƠ SỞ DỮ LIỆU [BinanceTracker] ĐÃ ĐƯỢC GEN THÀNH CÔNG 100%!" -ForegroundColor Green
         Write-Host "    - Database: BinanceTracker" -ForegroundColor Cyan
         Write-Host "    - Bảng dữ liệu: [dbo].[TradeSignals]" -ForegroundColor Cyan
-        Write-Host "    - Đầy đủ 5 Indexes tối ưu và 15 lệnh mẫu." -ForegroundColor Cyan
+        Write-Host "    - Đầy đủ 5 Indexes tối ưu, sẵn sàng ghi nhận tín hiệu giao dịch mới." -ForegroundColor Cyan
         Write-Host "========================================================================================" -ForegroundColor Green
     } else {
         Write-Host "[X] sqlcmd hoàn tất với mã lỗi: $LASTEXITCODE" -ForegroundColor Red
