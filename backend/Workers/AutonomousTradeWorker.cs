@@ -57,7 +57,7 @@ public class AutonomousTradeWorker : BackgroundService
 
                         // 2. Tự động phát hiện tín hiệu: Khi không có lệnh chạy và tín hiệu đạt chuẩn (>70% confidence)
                         var activeTrade = await tradeHistoryService.GetActiveSignalAsync(symbol);
-                        if (activeTrade == null && analysis.IctSetup != null && analysis.IctSetup.ConfidenceScore > 70 && analysis.IctSetup.OptimalEntry > 0)
+                        if (activeTrade == null && analysis.IctSetup != null && analysis.IctSetup.ConfidenceScore >= 78 && analysis.IctSetup.OptimalEntry > 0 && analysis.IctSetup.SetupAction.StartsWith("MỞ VỊ THẾ"))
                         {
                             // Kiểm tra điều kiện phiên: Trong vùng chết (02:00 - 07:00), không mở lệnh trừ khi điểm hội tụ >= 82%
                             if (analysis.SessionInfo == null || analysis.SessionInfo.IsTradeAllowed || analysis.IctSetup.ConfidenceScore >= 82)

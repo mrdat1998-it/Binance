@@ -117,7 +117,7 @@ public class TradeHistoryService : ITradeHistoryService
         IctRsiEmaAnalysis? ict,
         decimal currentPrice)
     {
-        if (ict == null || ict.ConfidenceScore <= 70 || ict.OptimalEntry <= 0)
+        if (ict == null || ict.ConfidenceScore < 78 || ict.OptimalEntry <= 0 || !ict.SetupAction.StartsWith("MỞ VỊ THẾ"))
         {
             return null;
         }

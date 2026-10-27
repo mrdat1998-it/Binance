@@ -232,7 +232,7 @@ public class FuturesService : IFuturesService
             );
         }
 
-        string entryDisplay = ictSetup.OptimalEntry > 0 ? $"{formatNum(ictSetup.OptimalEntry)} USDT" : "Chờ hội tụ đủ điều kiện (>70%)";
+        string entryDisplay = ictSetup.OptimalEntry > 0 ? $"{formatNum(ictSetup.OptimalEntry)} USDT" : "Chờ hội tụ chuẩn Kèo A+ (>=78%)";
         string rrDisplay = ictSetup.RiskRewardRatio > 0 ? $"1 : {ictSetup.RiskRewardRatio:N1}" : "Chưa kích hoạt";
 
         return new FuturesAnalysis(
@@ -484,8 +484,9 @@ public class FuturesService : IFuturesService
         bullScore = Math.Clamp(bullScore, 5, 98);
         bearScore = Math.Clamp(bearScore, 5, 98);
 
-        // 5. NGUYÊN TẮC QUẢN TRỊ RỦI RO: CHỈ KHI HỘI TỤ ĐỦ ĐIỀU KIỆN ĐẢM BẢO TRÊN 70% (> 70%) MỚI CHO LỆNH!
-        const int CONFIDENCE_THRESHOLD = 70;
+        // 5. NGUYÊN TẮC QUẢN TRỊ RỦI RO & BẢO VỆ VỐN KHẮT KHE (CHUẨN KÈO A+ SNIPER):
+        // KHÔNG BAO GIỜ VÀO LỆNH VỘI VÀNG. BẮT BUỘC ĐỒNG THUẬN ĐA KHUNG VÀ CHẠM ĐÚNG VÙNG ENTRY!
+        const int CONFIDENCE_THRESHOLD = 78; // Nâng ngưỡng tin cậy lên 78% (Kèo A+ chuẩn ICT)
 
         string setupAction;
         decimal entry = 0;
@@ -497,37 +498,92 @@ public class FuturesService : IFuturesService
         string leverageRule;
         string riskAdvice;
 
+        // Phân tích nến M15 gần nhất để kiểm tra phản ứng từ chối giá (Rejection Candle)
+        var lastCandle = klines.Last();
+        decimal candleRange = lastCandle.High - lastCandle.Low;
+        decimal upperWick = candleRange > 0 ? (lastCandle.High - Math.Max(lastCandle.Open, lastCandle.Close)) : 0;
+        decimal lowerWick = candleRange > 0 ? (Math.Min(lastCandle.Open, lastCandle.Close) - lastCandle.Low) : 0;
+        bool hasShortRejection = candleRange > 0 && ((upperWick / candleRange >= 0.28m) || (lastCandle.Close < lastCandle.Open));
+        bool hasLongRejection = candleRange > 0 && ((lowerWick / candleRange >= 0.28m) || (lastCandle.Close > lastCandle.Open));
+
+        // Kiểm tra xem giá hiện tại có đang nằm trong hoặc vừa chạm vào Vùng Đón Entry (FVG / OB) không
+        bool isPriceInShortZone = (currentPrice >= fvgLow * 0.999m && currentPrice <= fvgHigh * 1.002m) ||
+                                  (currentPrice >= obLow * 0.999m && currentPrice <= obHigh * 1.002m);
+
+        bool isPriceInLongZone = (currentPrice <= fvgHigh * 1.001m && currentPrice >= fvgLow * 0.998m) ||
+                                 (currentPrice <= obHigh * 1.001m && currentPrice >= obLow * 0.998m);
+
         if (session.SessionCode == "OFF_HOURS" && confidence < 82)
         {
             // Trong vùng chết 02:00 - 07:00 sáng, thanh khoản cực mỏng, từ chối mở lệnh để bảo toàn vốn
             setupAction = $"⏸️ TẠM DỪNG GIAO DỊCH PHIÊN (VÙNG CHẾT {session.TimeRangeVn} - THANH KHOẢN MỎNG)";
-            entry = 0;
-            sl = 0;
-            tp1 = 0;
-            tp2 = 0;
-            tp3 = 0;
-            rr = 0;
+            entry = 0; sl = 0; tp1 = 0; tp2 = 0; tp3 = 0; rr = 0;
             leverageRule = "Không vào lệnh (Đứng ngoài bảo toàn vốn tránh râu nến ảo ban đêm)";
             confluenceSummary = $"Đang trong {session.SessionName} ({session.TimeRangeVn}). Thị trường toàn cầu đóng cửa, thanh khoản mỏng, chênh lệch spread giãn. QUY TẮC BẢO VỆ TÀI KHOẢN: Không mở vị thế mới từ 02:00 - 07:00 sáng trừ khi hội tụ siêu mạnh (>= 82%).";
             riskAdvice = "Hãy để các vị thế cũ chạy an toàn hoặc nghỉ ngơi. Không trade khi thiếu vắng dòng tiền tổ chức.";
         }
-        else if (bullScore > CONFIDENCE_THRESHOLD && bullScore >= bearScore + 8)
+        else if (bullScore >= CONFIDENCE_THRESHOLD && bullScore >= bearScore + 8)
         {
-            // BỘ LỌC ĐA KHUNG VĨ MÔ (HARD GATE): TUYỆT ĐỐI KHÔNG LONG KHI D1 HOẶC H4 LÀ BEARISH!
-            if (dailyBias != null && (dailyBias.D1Bias == "BEARISH" || dailyBias.H4Bias == "BEARISH"))
+            // BỘ LỌC ĐA KHUNG VĨ MÔ: BẮT BUỘC D1 VÀ H4 CÙNG LÀ BULLISH
+            if (dailyBias != null && (dailyBias.D1Bias != "BULLISH" || dailyBias.H4Bias != "BULLISH"))
             {
-                string conflictReason = dailyBias.D1Bias == "BEARISH" 
-                    ? "khung Ngày (D1) đang là BEARISH (Xu hướng vĩ mô Giảm)" 
-                    : "khung 4 Giờ (H4) đang là BEARISH (Sóng trung hạn Giảm)";
-                setupAction = "⏸️ CHỜ ĐỢI / ĐỨNG NGOÀI (CẤM LONG NGƯỢC XU HƯỚNG D1/H4)";
+                string conflictReason = dailyBias.D1Bias != "BULLISH" 
+                    ? $"khung Ngày (D1: {dailyBias.D1Bias}) chưa xác nhận xu hướng Tăng" 
+                    : $"khung 4 Giờ (H4: {dailyBias.H4Bias}) chưa đồng pha Tăng";
+                setupAction = "⏸️ CHỜ ĐỢI / ĐỨNG NGOÀI (D1/H4 CHƯA ĐỒNG PHA TĂNG)";
                 entry = 0; sl = 0; tp1 = 0; tp2 = 0; tp3 = 0; rr = 0;
                 leverageRule = "Không vào lệnh (Bảo toàn 100% vốn)";
-                confluenceSummary = $"Tín hiệu M15 bật tăng đạt {bullScore}% nhưng BỊ TỪ CHỐI do {conflictReason}. KỶ LUẬT ICT/SMC BẢO TOÀN VỐN: Tuyệt đối không mở lệnh LONG bắt đáy dao rơi khi xu hướng lớn D1/H4 đang Giảm. Kiên nhẫn chờ hồi lên cản để tìm điểm SHORT thuận xu hướng.";
-                riskAdvice = "Giao dịch ngược xu hướng khung D1/H4 là nguyên nhân hàng đầu gây cháy tài khoản. Hãy kiên nhẫn đứng ngoài.";
+                confluenceSummary = $"Tín hiệu M15 bật tăng đạt {bullScore}% nhưng BỊ TỪ CHỐI do {conflictReason}. KỶ LUẬT ICT/SMC: Không vào lệnh khi các khung lớn chưa đồng thuận hoàn toàn.";
+                riskAdvice = "Kiên nhẫn chờ các khung lớn D1 và H4 đồng pha Tăng trước khi giải ngân.";
+            }
+            // BỘ LỌC PHÂN KỲ: CẤM LONG KHI XUẤT HIỆN PHÂN KỲ GIẢM
+            else if (hasBearishDivergence)
+            {
+                setupAction = "⏸️ CHỜ ĐỢI (CẢNH BÁO PHÂN KỲ GIẢM GIÁ M15)";
+                entry = 0; sl = 0; tp1 = 0; tp2 = 0; tp3 = 0; rr = 0;
+                leverageRule = "Không vào lệnh (Bảo toàn vốn tránh nhịp xả ngược chiều)";
+                confluenceSummary = "Khung M15 xuất hiện Phân kỳ Giảm Giá (Bearish Divergence: Giá tạo đỉnh cao hơn nhưng RSI tạo đỉnh thấp hơn). Nguy cơ đảo chiều điều chỉnh mạnh rất cao. QUY TẮC AN TOÀN: Cấm Long khi có phân kỳ giảm.";
+                riskAdvice = "Phân kỳ giảm báo hiệu suy yếu lực mua. Không mở vị thế Long.";
+            }
+            // BỘ LỌC BẪY THANH KHOẢN: TRÁNH LONG NGAY SAU KHI VỪA QUÉT ĐỈNH BSL
+            else if (liquiditySweep.Contains("BSL") || liquiditySweep.Contains("đỉnh"))
+            {
+                setupAction = "⏸️ CHỜ ĐỢI (VỪA QUÉT THANH KHOẢN ĐỈNH BSL - NGUY CƠ SẬP)";
+                entry = 0; sl = 0; tp1 = 0; tp2 = 0; tp3 = 0; rr = 0;
+                leverageRule = "Không vào lệnh (Tránh bẫy thanh khoản cá mập)";
+                confluenceSummary = $"Thị trường vừa quét sạch thanh khoản đỉnh BSL tại ${swingHigh:N2}. Cá mập thường xả hàng sau cú quét đỉnh. QUY TẮC: Cấm Long sau nhịp quét BSL đỉnh, chờ giá hồi về vùng cầu an toàn.";
+                riskAdvice = "Tránh Long sau cú quét đỉnh BSL. Chờ cấu trúc tích lũy lại.";
+            }
+            // BỘ LỌC VÙNG ENTRY: GIÁ PHẢI ĐANG CHẠM VÀO VÙNG CẦU FVG/OB (KHÔNG FOMO ĐU ĐỈNH)
+            else if (!isPriceInLongZone)
+            {
+                setupAction = "⏸️ CHỜ GIÁ RETEST VÙNG CẦU (KHÔNG FOMO ĐU ĐỈNH)";
+                entry = 0; sl = 0; tp1 = 0; tp2 = 0; tp3 = 0; rr = 0;
+                leverageRule = "Không vào lệnh (Chờ đón Limit tại hỗ trợ FVG/OB)";
+                confluenceSummary = $"Khung D1/H4 Tăng tốt ({bullScore}%) nhưng Giá hiện tại (${currentPrice:N2}) đang nằm xa vùng cầu. KỶ LUẬT BẢO VỆ VỐN: Tuyệt đối không FOMO mua đuổi đỉnh! Kiên nhẫn chờ giá điều chỉnh về vùng FVG Cầu (${fvgLow:N2} - ${fvgHigh:N2}) hoặc Order Block (${obLow:N2} - ${obHigh:N2}) để có điểm vào tối ưu và R:R an toàn.";
+                riskAdvice = "Mua đuổi giá cao có rủi ro dính nhịp xả điều chỉnh. Kiên nhẫn chờ giá retest vùng cầu.";
+            }
+            // BỘ LỌC QUÁ MUA: RSI KHÔNG ĐƯỢC QUÁ CAO (> 62)
+            else if (rsi14 > 62m)
+            {
+                setupAction = "⏸️ CHỜ ĐỢI (RSI QUÁ MUA - NGUY CƠ ĐU ĐỈNH)";
+                entry = 0; sl = 0; tp1 = 0; tp2 = 0; tp3 = 0; rr = 0;
+                leverageRule = "Không vào lệnh (Chờ RSI hạ nhiệt)";
+                confluenceSummary = $"RSI 14 hiện tại đạt {rsi14:N1} (> 62) đang ở vùng quá mua. Lực mua có dấu hiệu kiệt sức. Chờ RSI hạ nhiệt về vùng lành mạnh (45 - 55) trước khi mở vị thế.";
+                riskAdvice = "Không vào lệnh khi RSI vượt ngưỡng 62.";
+            }
+            // BỘ LỌC NẾN TỪ CHỐI (REJECTION CANDLE): NẾN M15 PHẢI CÓ TÍN HIỆU RÚT CHÂN HOẶC ĐÓNG NẾN XANH
+            else if (!hasLongRejection)
+            {
+                setupAction = "⏸️ CHỜ NẾN REJECTION RÚT CHÂN (CHƯA CÓ RÂU CẦU ĐẨY LÊN)";
+                entry = 0; sl = 0; tp1 = 0; tp2 = 0; tp3 = 0; rr = 0;
+                leverageRule = "Không vào lệnh (Chờ xác nhận nến rút chân hoặc nến xanh)";
+                confluenceSummary = "Giá đang trong vùng hỗ trợ nhưng nến M15 chưa xuất hiện tín hiệu rút chân (chưa có râu dưới hoặc nến xanh). KỶ LUẬT ICT: Không thò tay bắt dao rơi, chờ nến đóng cửa rút chân xác nhận lực cầu.";
+                riskAdvice = "Không bắt dao rơi. Chỉ Long khi xuất hiện nến rút chân rõ ràng.";
             }
             else
             {
-                // ĐỦ ĐIỀU KIỆN CHO LỆNH LONG (> 70% VÀ ĐỒNG PHA VĨ MÔ)
+                // ĐỦ ĐIỀU KIỆN KÈO A+ CHO LỆNH LONG THUẬN XU HƯỚNG
                 setupAction = "MỞ VỊ THẾ LONG (MUA CANH HỒI VÙNG CẦU FVG/OB)";
                 entry = Math.Round(Math.Max(fvgLow, Math.Min(currentPrice, currentPrice * 0.995m)), 2);
                 sl = Math.Round(Math.Min(obLow, currentPrice * 0.978m), 2);
@@ -539,28 +595,73 @@ public class FuturesService : IFuturesService
                 rr = Math.Round((tp2 - entry) / risk, 1);
                 confidence = bullScore;
 
-                confluenceSummary = $"Hội tụ {confidence}% (>70% tiêu chuẩn): 1) Đồng pha đa khung D1/H4 ({dailyBias?.D1Bias}/{dailyBias?.H4Bias}), 2) Giá duy trì trên EMA50 ({ema50:N2}), 3) Retest vùng {obType} và FVG ({fvgLow:N2} - {fvgHigh:N2}), 4) {rsiSentiment} {rsiDivergence}, 5) {session.SessionName} ({session.LiquidityLevel}).";
+                confluenceSummary = $"Hội tụ {confidence}% (Chuẩn Kèo A+): 1) Đồng pha đa khung D1/H4 ({dailyBias?.D1Bias}/{dailyBias?.H4Bias}), 2) Giá đang chạm vùng {obType} và FVG ({fvgLow:N2} - {fvgHigh:N2}), 3) Có nến phản ứng rút chân xác nhận, 4) {rsiSentiment} {rsiDivergence}, 5) {session.SessionName} ({session.LiquidityLevel}).";
                 leverageRule = "Khuyến nghị đòn bẩy: 5x - 10x (Cross hoặc Isolated). Tuyệt đối không dùng > 15x.";
                 riskAdvice = "Quy tắc quản trị vốn: Tối đa 2% - 3% tổng vốn cho 1 lệnh. Khi giá chạm mốc TP1, dời Stop Loss về vùng giá vào lệnh (Break-even Entry) để bảo toàn 100% vốn.";
             }
         }
-        else if (bearScore > CONFIDENCE_THRESHOLD && bearScore >= bullScore + 8)
+        else if (bearScore >= CONFIDENCE_THRESHOLD && bearScore >= bullScore + 8)
         {
-            // BỘ LỌC ĐA KHUNG VĨ MÔ (HARD GATE): TUYỆT ĐỐI KHÔNG SHORT KHI D1 HOẶC H4 LÀ BULLISH!
-            if (dailyBias != null && (dailyBias.D1Bias == "BULLISH" || dailyBias.H4Bias == "BULLISH"))
+            // BỘ LỌC ĐA KHUNG VĨ MÔ: BẮT BUỘC D1 VÀ H4 CÙNG LÀ BEARISH
+            if (dailyBias != null && (dailyBias.D1Bias != "BEARISH" || dailyBias.H4Bias != "BEARISH"))
             {
-                string conflictReason = dailyBias.D1Bias == "BULLISH" 
-                    ? "khung Ngày (D1) đang là BULLISH (Xu hướng vĩ mô Tăng)" 
-                    : "khung 4 Giờ (H4) đang là BULLISH (Sóng trung hạn Tăng)";
-                setupAction = "⏸️ CHỜ ĐỢI / ĐỨNG NGOÀI (CẤM SHORT CHẶN ĐẦU TÀU D1/H4)";
+                string conflictReason = dailyBias.D1Bias != "BEARISH" 
+                    ? $"khung Ngày (D1: {dailyBias.D1Bias}) chưa xác nhận xu hướng Giảm" 
+                    : $"khung 4 Giờ (H4: {dailyBias.H4Bias}) chưa đồng pha Giảm";
+                setupAction = "⏸️ CHỜ ĐỢI / ĐỨNG NGOÀI (D1/H4 CHƯA ĐỒNG PHA GIẢM)";
                 entry = 0; sl = 0; tp1 = 0; tp2 = 0; tp3 = 0; rr = 0;
                 leverageRule = "Không vào lệnh (Bảo toàn 100% vốn)";
-                confluenceSummary = $"Tín hiệu M15 giảm giá đạt {bearScore}% nhưng BỊ TỪ CHỐI do {conflictReason}. KỶ LUẬT ICT/SMC BẢO TOÀN VỐN: Tuyệt đối không mở lệnh SHORT chặn đầu xu hướng khi khung D1/H4 đang Tăng mạnh. Kiên nhẫn chờ nhịp điều chỉnh về vùng cầu để LONG thuận xu hướng.";
-                riskAdvice = "Bán khống ngược sóng tăng khung Ngày là rủi ro lớn nhất. Hãy kiên nhẫn đứng ngoài.";
+                confluenceSummary = $"Tín hiệu M15 giảm giá đạt {bearScore}% nhưng BỊ TỪ CHỐI do {conflictReason}. KỶ LUẬT ICT/SMC: Không vào lệnh khi các khung lớn chưa đồng thuận hoàn toàn.";
+                riskAdvice = "Kiên nhẫn chờ các khung lớn D1 và H4 đồng pha Giảm trước khi giải ngân.";
+            }
+            // BỘ LỌC PHÂN KỲ: CẤM SHORT KHI XUẤT HIỆN PHÂN KỲ TĂNG
+            else if (hasBullishDivergence)
+            {
+                setupAction = "⏸️ CHỜ ĐỢI (CẢNH BÁO PHÂN KỲ TĂNG GIÁ M15)";
+                entry = 0; sl = 0; tp1 = 0; tp2 = 0; tp3 = 0; rr = 0;
+                leverageRule = "Không vào lệnh (Bảo toàn vốn tránh nhịp bật hồi ngược sóng)";
+                confluenceSummary = "Khung M15 xuất hiện Phân kỳ Tăng Giá (Bullish Divergence: Giá tạo đáy thấp hơn nhưng RSI tạo đáy cao hơn). Nguy cơ phe mua bật tăng giật quét thanh khoản rất cao. QUY TẮC AN TOÀN: Cấm Short khi có phân kỳ tăng.";
+                riskAdvice = "Phân kỳ tăng báo hiệu cạn kiệt lực bán. Tuyệt đối không Short.";
+            }
+            // BỘ LỌC BẪY THANH KHOẢN: TRÁNH SHORT NGAY SAU KHI VỪA QUÉT ĐÁY SSL
+            else if (liquiditySweep.Contains("SSL") || liquiditySweep.Contains("đáy"))
+            {
+                setupAction = "⏸️ CHỜ ĐỢI (VỪA QUÉT THANH KHOẢN ĐÁY SSL - NGUY CƠ BẬT HỒI)";
+                entry = 0; sl = 0; tp1 = 0; tp2 = 0; tp3 = 0; rr = 0;
+                leverageRule = "Không vào lệnh (Tránh bẫy thanh khoản cá mập)";
+                confluenceSummary = $"Thị trường vừa quét sạch thanh khoản đáy SSL tại ${swingLow:N2}. Cá mập thường gom hàng sau cú quét đáy để đẩy sóng hồi. QUY TẮC: Cấm Short đuổi sau nhịp quét SSL đáy, kiên nhẫn chờ giá hồi lên cản FVG/OB.";
+                riskAdvice = "Tránh Short ngay sau cú quét đáy SSL. Chờ cấu trúc hồi lên cản.";
+            }
+            // BỘ LỌC VÙNG ENTRY: GIÁ PHẢI ĐANG CHẠM VÀO VÙNG CẢN FVG/OB (KHÔNG SHORT ĐUỔI ĐÁY)
+            else if (!isPriceInShortZone)
+            {
+                setupAction = "⏸️ CHỜ GIÁ HỒI VỀ VÙNG CẢN (KHÔNG SHORT ĐUỔI ĐÁY)";
+                entry = 0; sl = 0; tp1 = 0; tp2 = 0; tp3 = 0; rr = 0;
+                leverageRule = "Không vào lệnh (Chờ đón Limit tại cản FVG/OB)";
+                confluenceSummary = $"Khung D1/H4 Giảm đồng thuận ({bearScore}%) nhưng Giá hiện tại (${currentPrice:N2}) đang nằm thấp xa vùng cản. KỶ LUẬT BẢO VỆ VỐN: Tuyệt đối không Short đuổi đáy! Kiên nhẫn chờ giá hồi lên vùng FVG Cung (${fvgLow:N2} - {fvgHigh:N2}) hoặc Order Block (${obLow:N2} - ${obHigh:N2}) để có điểm vào tối ưu và R:R an toàn.";
+                riskAdvice = "Bán khống đuổi đáy là sai lầm nguy hiểm nhất. Hãy kiên nhẫn chờ giá hồi lên cản để Short.";
+            }
+            // BỘ LỌC QUÁ BÁN: RSI KHÔNG ĐƯỢC QUÁ THẤP (< 38 - TRÁNH BÁN THÁO ĐÚNG ĐÁY)
+            else if (rsi14 < 38m)
+            {
+                setupAction = "⏸️ CHỜ ĐỢI (RSI QUÁ BÁN - NGUY CƠ BẬT HỒI)";
+                entry = 0; sl = 0; tp1 = 0; tp2 = 0; tp3 = 0; rr = 0;
+                leverageRule = "Không vào lệnh (Chờ RSI bật hồi về cản)";
+                confluenceSummary = $"RSI 14 hiện tại đạt {rsi14:N1} (< 38) đang ở vùng quá bán. Áp lực bán đã xả cạn, nguy cơ xuất hiện nhịp Short Squeeze bật tăng giật quét Stop Loss. QUY TẮC: Chờ giá bật hồi lên cản FVG/OB và RSI hồi về vùng 42 - 55 trước khi Short.";
+                riskAdvice = "Không Short khi RSI dưới 38. Rất dễ bị quét râu nến bật tăng.";
+            }
+            // BỘ LỌC NẾN TỪ CHỐI (REJECTION CANDLE): NẾN M15 PHẢI CÓ TÍN HIỆU TỪ CHỐI GIÁ HOẶC NẾN GIẢM
+            else if (!hasShortRejection)
+            {
+                setupAction = "⏸️ CHỜ NẾN REJECTION TỪ CHỐI GIÁ (CHƯA CÓ RÂU ĐÈ GIẢM)";
+                entry = 0; sl = 0; tp1 = 0; tp2 = 0; tp3 = 0; rr = 0;
+                leverageRule = "Không vào lệnh (Chờ xác nhận nến Pinbar hoặc Engulfing)";
+                confluenceSummary = "Giá đang chạm vùng cản nhưng nến M15 chưa xuất hiện tín hiệu từ chối giá (chưa có râu trên nén bán hoặc nến giảm). KỶ LUẬT ICT: Tuyệt đối không Short chặn đầu tàu tăng, chờ nến đóng cửa xác nhận lực bán đè.";
+                riskAdvice = "Không Short chặn đầu tàu nến xanh mạnh. Luôn chờ nến Rejection xác nhận.";
             }
             else
             {
-                // ĐỦ ĐIỀU KIỆN CHO LỆNH SHORT (> 70% VÀ ĐỒNG PHA VĨ MÔ)
+                // ĐỦ ĐIỀU KIỆN KÈO A+ CHO LỆNH SHORT THUẬN XU HƯỚNG
                 setupAction = "MỞ VỊ THẾ SHORT (BÁN CANH TEST KHÁNG CỰ FVG/OB)";
                 entry = Math.Round(Math.Min(fvgHigh, Math.Max(currentPrice, currentPrice * 1.005m)), 2);
                 sl = Math.Round(Math.Max(obHigh, currentPrice * 1.022m), 2);
@@ -572,15 +673,15 @@ public class FuturesService : IFuturesService
                 rr = Math.Round((entry - tp2) / risk, 1);
                 confidence = bearScore;
 
-                confluenceSummary = $"Hội tụ {confidence}% (>70% tiêu chuẩn): 1) Đồng pha đa khung D1/H4 ({dailyBias?.D1Bias}/{dailyBias?.H4Bias}), 2) Áp lực bán dưới EMA50 ({ema50:N2}), 3) Chạm cản {obType} và Bearish FVG ({fvgLow:N2} - {fvgHigh:N2}), 4) {rsiSentiment} {rsiDivergence}, 5) {session.SessionName} ({session.LiquidityLevel}).";
+                confluenceSummary = $"Hội tụ {confidence}% (Chuẩn Kèo A+): 1) Đồng pha đa khung D1/H4 ({dailyBias?.D1Bias}/{dailyBias?.H4Bias}), 2) Giá đang retest vùng {obType} và Bearish FVG ({fvgLow:N2} - {fvgHigh:N2}), 3) Có nến phản ứng từ chối giá xác nhận, 4) {rsiSentiment} {rsiDivergence}, 5) {session.SessionName} ({session.LiquidityLevel}).";
                 leverageRule = "Khuyến nghị đòn bẩy: 5x - 10x (Cross hoặc Isolated). Tuyệt đối không dùng > 15x.";
                 riskAdvice = "Quy tắc quản trị vốn: Tối đa 2% - 3% tổng vốn cho 1 lệnh. Khi giá chạm mốc TP1, dời Stop Loss về vùng giá vào lệnh (Break-even Entry) để bảo toàn 100% vốn.";
             }
         }
         else
         {
-            // CHƯA ĐỦ ĐIỀU KIỆN HỘI TỤ ĐẠT > 70% -> TUYỆT ĐỐI KHÔNG CHO LỆNH!
-            setupAction = $"⏸️ CHỜ ĐỢI TÍN HIỆU / QUAN SÁT (ĐỘ HỘI TỤ {confidence}% CHƯA ĐẠT >70%)";
+            // CHƯA ĐỦ ĐIỀU KIỆN HỘI TỤ ĐẠT >= 78% -> TUYỆT ĐỐI KHÔNG CHO LỆNH!
+            setupAction = $"⏸️ CHỜ ĐỢI TÍN HIỆU / QUAN SÁT (ĐỘ HỘI TỤ {confidence}% CHƯA ĐẠT KÈO A+ >=78%)";
             entry = 0;
             sl = 0;
             tp1 = 0;
@@ -588,8 +689,8 @@ public class FuturesService : IFuturesService
             tp3 = 0;
             rr = 0;
             leverageRule = "Không vào lệnh (Đứng ngoài bảo toàn 100% vốn)";
-            confluenceSummary = $"Chỉ số hội tụ hiện tại đạt {confidence}% (Dưới ngưỡng an toàn 70%). Thị trường đang trong giai đoạn nhiễu, xung đột xu hướng giữa các khung giờ (D1: {dailyBias?.D1Bias}, H4: {dailyBias?.H4Bias}), cấu trúc nến đang nén tích lũy hoặc RSI chưa có tín hiệu rõ nét. QUY TẮC BẢO TOÀN VỐN: Tuyệt đối KHÔNG vào lệnh mạo hiểm, kiên nhẫn đứng ngoài quan sát cho đến khi hội tụ đủ điều kiện >70%.";
-            riskAdvice = "Kiên nhẫn là chìa khóa trong giao dịch. Chỉ giải ngân khi có kèo A+ xác suất thắng cao (>70%).";
+            confluenceSummary = $"Chỉ số hội tụ hiện tại đạt {confidence}% (Dưới ngưỡng chuẩn A+ 78%). Thị trường đang trong giai đoạn nhiễu, xung đột xu hướng giữa các khung giờ (D1: {dailyBias?.D1Bias}, H4: {dailyBias?.H4Bias}), cấu trúc nến đang nén tích lũy hoặc chưa chạm đúng điểm đón FVG/OB. QUY TẮC BẢO TOÀN VỐN: Tuyệt đối KHÔNG vào lệnh mạo hiểm, kiên nhẫn đứng ngoài quan sát cho đến khi hội tụ đủ điều kiện Kèo A+ >=78%.";
+            riskAdvice = "Kiên nhẫn là chìa khóa trong giao dịch. Chỉ giải ngân khi có kèo A+ xác suất thắng cao (>=78%).";
         }
 
         return new IctRsiEmaAnalysis(

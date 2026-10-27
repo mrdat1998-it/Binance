@@ -43,7 +43,7 @@ public class FuturesController : ControllerBase
 
         // 3. Chỉ khi KHÔNG còn lệnh active nào đang chạy và tín hiệu mới đạt chuẩn > 70% thì mới ghi nhận lệnh mới!
         var activeTrade = await _tradeHistoryService.GetActiveSignalAsync(symbol);
-        if (activeTrade == null && analysis.IctSetup != null && analysis.IctSetup.ConfidenceScore > 70 && analysis.IctSetup.OptimalEntry > 0)
+        if (activeTrade == null && analysis.IctSetup != null && analysis.IctSetup.ConfidenceScore >= 78 && analysis.IctSetup.OptimalEntry > 0 && analysis.IctSetup.SetupAction.StartsWith("MỞ VỊ THẾ"))
         {
             // Kiểm tra điều kiện phiên: Không mở lệnh trong Vùng Chết (02:00 - 07:00) trừ khi điểm hội tụ >= 82%
             if (analysis.SessionInfo == null || analysis.SessionInfo.IsTradeAllowed || analysis.IctSetup.ConfidenceScore >= 82)
