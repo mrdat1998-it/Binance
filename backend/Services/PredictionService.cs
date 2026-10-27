@@ -35,11 +35,9 @@ public class PredictionService : IPredictionService
         {
             "BTCUSDT" => 1.85m,
             "ETHUSDT" => 2.40m,
-            "SOLUSDT" => 2.65m,
             "BNBUSDT" => 1.95m,
-            "XRPUSDT" => 2.20m,
-            "SUIUSDT" => 3.10m,
             "NEARUSDT" => 2.90m,
+            "SOLUSDT" => 2.65m,
             _ => 2.25m
         };
 
@@ -157,10 +155,10 @@ public class PredictionService : IPredictionService
                 new("Binance Research", 1050m, "Đỉnh chu kỳ", "Cơ chế đốt Auto-Burn BEP-95 hàng quý giảm cung mạnh mẽ kết hợp hệ sinh thái BSC/opBNB tăng trưởng."),
                 new("Messari Crypto", 920m, "Năm 2025", "Nền tảng Launchpool đem lại tỷ suất lợi nhuận cao cho người nắm giữ BNB, tạo áp lực nắm giữ dài hạn.")
             },
-            "XRPUSDT" => new List<InstitutionalForecast>
+            "NEARUSDT" => new List<InstitutionalForecast>
             {
-                new("Canary Capital / Ripple Analysts", 4.50m, "Chu kỳ 2025/2026", "Khung pháp lý rõ ràng tại Mỹ, đề xuất XRP ETF và mở rộng giải pháp thanh toán liên ngân hàng RLUSD."),
-                new("Standard Chartered Global", 3.80m, "Năm 2025", "Sự tham gia của các tổ chức tài chính châu Á và Trung Đông sử dụng XRPL làm cầu nối tiền tệ.")
+                new("Pantera Capital", 18.50m, "Chu kỳ 2025/2026", "NEAR dẫn đầu cuộc cách mạng Trừu tượng hóa chuỗi (Chain Abstraction) và tích hợp AI phi tập trung cấp người dùng."),
+                new("Messari Research", 14.80m, "Năm 2025", "Tốc độ tăng trưởng tài khoản hoạt động hàng ngày (DAU) vượt trội nhờ hệ sinh thái Web3 AI và hạ tầng dữ liệu mở.")
             },
             _ => new List<InstitutionalForecast>
             {

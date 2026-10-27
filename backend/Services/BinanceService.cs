@@ -222,16 +222,9 @@ public class BinanceService : IBinanceService
         {
             "BTCUSDT" => 80800m,
             "ETHUSDT" => 2380m,
-            "SOLUSDT" => 102.5m,
             "BNBUSDT" => 735m,
-            "XRPUSDT" => 1.28m,
-            "DOGEUSDT" => 0.078m,
-            "ADAUSDT" => 0.21m,
-            "AVAXUSDT" => 9.02m,
-            "LINKUSDT" => 11.78m,
-            "SUIUSDT" => 0.95m,
             "NEARUSDT" => 4.65m,
-            "DOTUSDT" => 1.08m,
+            "SOLUSDT" => 102.5m,
             _ => 100m
         };
 

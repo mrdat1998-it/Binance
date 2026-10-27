@@ -87,7 +87,7 @@ public static class DbInitializer
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An error occurred while initializing the SQLite database.");
+            logger.LogError(ex, "An error occurred while initializing the SQL Server database.");
             throw;
         }
     }
