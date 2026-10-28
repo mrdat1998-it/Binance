@@ -586,18 +586,18 @@ public class FuturesService : IFuturesService
                 // ĐỦ ĐIỀU KIỆN KÈO A+ CHO LỆNH LONG THUẬN XU HƯỚNG
                 setupAction = "MỞ VỊ THẾ LONG (MUA CANH HỒI VÙNG CẦU FVG/OB)";
                 entry = Math.Round(Math.Max(fvgLow, Math.Min(currentPrice, currentPrice * 0.995m)), 2);
-                sl = Math.Round(Math.Min(obLow, currentPrice * 0.978m), 2);
-                decimal risk = Math.Max(entry * 0.008m, entry - sl);
+                sl = Math.Round(Math.Min(obLow * 0.96m, currentPrice * 0.90m), 2); // Nới biên độ Stop Loss lên 10% chống quét râu nến
+                decimal risk = Math.Max(entry * 0.05m, entry - sl);
 
-                tp1 = Math.Round(entry + risk * 1.5m, 2);
-                tp2 = Math.Round(Math.Max(swingHigh, entry + risk * 2.5m), 2);
-                tp3 = Math.Round(entry + risk * 3.8m, 2);
+                tp1 = Math.Round(entry + risk * 1.2m, 2); // TP1: ~ +12%
+                tp2 = Math.Round(Math.Max(swingHigh, entry + risk * 2.0m), 2); // TP2: ~ +20%
+                tp3 = Math.Round(entry + risk * 3.0m, 2); // TP3: ~ +30%
                 rr = Math.Round((tp2 - entry) / risk, 1);
                 confidence = bullScore;
 
                 confluenceSummary = $"Hội tụ {confidence}% (Chuẩn Kèo A+): 1) Đồng pha đa khung D1/H4 ({dailyBias?.D1Bias}/{dailyBias?.H4Bias}), 2) Giá đang chạm vùng {obType} và FVG ({fvgLow:N2} - {fvgHigh:N2}), 3) Có nến phản ứng rút chân xác nhận, 4) {rsiSentiment} {rsiDivergence}, 5) {session.SessionName} ({session.LiquidityLevel}).";
-                leverageRule = "Khuyến nghị đòn bẩy: 5x - 10x (Cross hoặc Isolated). Tuyệt đối không dùng > 15x.";
-                riskAdvice = "Quy tắc quản trị vốn: Tối đa 2% - 3% tổng vốn cho 1 lệnh. Khi giá chạm mốc TP1, dời Stop Loss về vùng giá vào lệnh (Break-even Entry) để bảo toàn 100% vốn.";
+                leverageRule = "Khuyến nghị đòn bẩy: 2x - 3x (Biên độ SL 10% an toàn tuyệt đối chống quét râu. Tuyệt đối KHÔNG dùng đòn bẩy > 5x).";
+                riskAdvice = "Quản trị vốn SL 10%: Mỗi lệnh $50 dùng đòn bẩy 2x ($100 vị thế), nếu dính SL 10% chỉ mất đúng $10 (bảo toàn 80% vốn). Khi giá chạm TP1 (+12%), tự động dời Stop Loss về hòa vốn (Entry Break-even).";
             }
         }
         else if (bearScore >= CONFIDENCE_THRESHOLD && bearScore >= bullScore + 8)
@@ -664,18 +664,18 @@ public class FuturesService : IFuturesService
                 // ĐỦ ĐIỀU KIỆN KÈO A+ CHO LỆNH SHORT THUẬN XU HƯỚNG
                 setupAction = "MỞ VỊ THẾ SHORT (BÁN CANH TEST KHÁNG CỰ FVG/OB)";
                 entry = Math.Round(Math.Min(fvgHigh, Math.Max(currentPrice, currentPrice * 1.005m)), 2);
-                sl = Math.Round(Math.Max(obHigh, currentPrice * 1.022m), 2);
-                decimal risk = Math.Max(entry * 0.008m, sl - entry);
+                sl = Math.Round(Math.Max(obHigh * 1.04m, currentPrice * 1.10m), 2); // Nới biên độ Stop Loss lên 10% chống quét râu nến
+                decimal risk = Math.Max(entry * 0.05m, sl - entry);
 
-                tp1 = Math.Round(entry - risk * 1.5m, 2);
-                tp2 = Math.Round(Math.Min(swingLow, entry - risk * 2.5m), 2);
-                tp3 = Math.Round(entry - risk * 3.8m, 2);
+                tp1 = Math.Round(entry - risk * 1.2m, 2); // TP1: ~ +12%
+                tp2 = Math.Round(Math.Min(swingLow, entry - risk * 2.0m), 2); // TP2: ~ +20%
+                tp3 = Math.Round(entry - risk * 3.0m, 2); // TP3: ~ +30%
                 rr = Math.Round((entry - tp2) / risk, 1);
                 confidence = bearScore;
 
                 confluenceSummary = $"Hội tụ {confidence}% (Chuẩn Kèo A+): 1) Đồng pha đa khung D1/H4 ({dailyBias?.D1Bias}/{dailyBias?.H4Bias}), 2) Giá đang retest vùng {obType} và Bearish FVG ({fvgLow:N2} - {fvgHigh:N2}), 3) Có nến phản ứng từ chối giá xác nhận, 4) {rsiSentiment} {rsiDivergence}, 5) {session.SessionName} ({session.LiquidityLevel}).";
-                leverageRule = "Khuyến nghị đòn bẩy: 5x - 10x (Cross hoặc Isolated). Tuyệt đối không dùng > 15x.";
-                riskAdvice = "Quy tắc quản trị vốn: Tối đa 2% - 3% tổng vốn cho 1 lệnh. Khi giá chạm mốc TP1, dời Stop Loss về vùng giá vào lệnh (Break-even Entry) để bảo toàn 100% vốn.";
+                leverageRule = "Khuyến nghị đòn bẩy: 2x - 3x (Biên độ SL 10% an toàn tuyệt đối chống quét râu. Tuyệt đối KHÔNG dùng đòn bẩy > 5x).";
+                riskAdvice = "Quản trị vốn SL 10%: Mỗi lệnh $50 dùng đòn bẩy 2x ($100 vị thế), nếu dính SL 10% chỉ mất đúng $10 (bảo toàn 80% vốn). Khi giá chạm TP1 (+12%), tự động dời Stop Loss về hòa vốn (Entry Break-even).";
             }
         }
         else

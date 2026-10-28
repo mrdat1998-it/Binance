@@ -2265,10 +2265,10 @@
               </div>
               <span style="font-size:0.75rem; color:var(--text-muted); margin-left:4px;">Đòn Bẩy:</span>
               <select id="sim-lev-select" onchange="updateMarginSim()" style="background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.25); color:#fff; font-family:'JetBrains Mono'; font-weight:700; padding:3px 6px; border-radius:4px; font-size:0.75rem;">
-                <option value="5" selected>5x (Khuyên Dùng)</option>
-                <option value="10">10x (Tiêu Chuẩn)</option>
-                <option value="3">3x (Bảo Thủ)</option>
-                <option value="15">15x (Mạo Hiểm)</option>
+                <option value="2" selected>2x (Chuẩn SL 10% - Rủi ro $10)</option>
+                <option value="3">3x (SL 10% - Rủi ro $15)</option>
+                <option value="1">1x (SL 10% - Rủi ro $5)</option>
+                <option value="5">5x (Mạo hiểm - Rủi ro $25)</option>
               </select>
             </div>
           </div>
@@ -3901,13 +3901,13 @@
       if (posSizeEl) posSizeEl.innerText = `$${posSize.toFixed(2)}`;
 
       let entry = currentIctSetup && currentIctSetup.optimalEntry > 0 ? Number(currentIctSetup.optimalEntry) : currentPrice;
-      let sl = currentIctSetup && currentIctSetup.stopLoss > 0 ? Number(currentIctSetup.stopLoss) : (entry * 0.978);
-      let tp1 = currentIctSetup && currentIctSetup.takeProfit1 > 0 ? Number(currentIctSetup.takeProfit1) : (entry * 1.033);
-      let tp2 = currentIctSetup && currentIctSetup.takeProfit2 > 0 ? Number(currentIctSetup.takeProfit2) : (entry * 1.055);
+      let sl = currentIctSetup && currentIctSetup.stopLoss > 0 ? Number(currentIctSetup.stopLoss) : (entry * 0.90);
+      let tp1 = currentIctSetup && currentIctSetup.takeProfit1 > 0 ? Number(currentIctSetup.takeProfit1) : (entry * 1.12);
+      let tp2 = currentIctSetup && currentIctSetup.takeProfit2 > 0 ? Number(currentIctSetup.takeProfit2) : (entry * 1.20);
 
-      let slDistPct = entry > 0 ? (Math.abs(entry - sl) / entry) * 100 : 2.2;
-      let tp1DistPct = entry > 0 ? (Math.abs(tp1 - entry) / entry) * 100 : 3.3;
-      let tp2DistPct = entry > 0 ? (Math.abs(tp2 - entry) / entry) * 100 : 5.5;
+      let slDistPct = entry > 0 ? (Math.abs(entry - sl) / entry) * 100 : 10.0;
+      let tp1DistPct = entry > 0 ? (Math.abs(tp1 - entry) / entry) * 100 : 12.0;
+      let tp2DistPct = entry > 0 ? (Math.abs(tp2 - entry) / entry) * 100 : 20.0;
 
       slDistPct = Math.max(0.5, slDistPct);
       tp1DistPct = Math.max(1.0, tp1DistPct);
